@@ -1,0 +1,222 @@
+﻿(** 
+	Test Case: PCT-VR-Bandu-DuplicateDomainFilter
+	RQM Test Case ID: 49 
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("PCT-VR-Bandu-DuplicateDomainFilter.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+set testData to environment.assertions
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+
+try	
+	// Setting reusable search rectangles and variables
+	set tabsAreaSR to ORNScreen.scale(0, .05, 1, .2)
+	set searchArea to ORNScreen.scale(0, .18, 1, 1)
+	set searchAreaFlashMessage to ORNScreen.scale(0, 0, 0.5, 0.5)
+	set searchAreaDomainNotFound to ORNScreen.scale(0.3, 0.25, 0.5, 0.35)
+	set banduURL to environment.endpoint
+	set userAdmin to ORNUser.getUser (environment, "Associate User1")
+	set userDomainMaintainer to ORNUser.getUser (environment, "Associate User2")
+	
+	// Open the harness url and sign in
+	DskUtilities.dismissRulesOfRoad
+	DskBrowser.launchChromeIncognitoMaxURL banduURL
+	BanduUtil.banduLogin userAdmin.username, userAdmin.password
+	WaitFor ORNInterval.medium, text :"Logout",SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	
+	log "Scenario 1: Navigating to New Domain screen and validating all fields are present"
+	DomainsUtil.openNewDomainPage
+	WaitFor ORNInterval.medium, text:"Parent", SearchRectangle:searchArea
+	set fieldLables to environment.assertions.fieldsValues
+	log "Validating all fields are visible"
+	repeat with each item of fieldLables
+		if it equals "Path"
+			TypeText pageDown
+		end if
+		assert that ImageFound(ORNInterval.medium, text:it, SearchRectangle: searchArea)
+	end repeat
+	TypeText pageUp
+	CaptureScreen "Scenario1_New_Domain_Page"
+	
+	log "Scenario 2: Create new domains without parent"
+	DomainsUtil.createDomain testData.parentDChildTxt1,testData.parentDChildTxt1,testData.parentDChildTxt1,""
+	assert that ImageFound(ORNInterval.medium, text: testData.parentDChildTxt1, SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Key"))
+	DomainsUtil.openNewDomainPage
+	DomainsUtil.createDomain  testData.parentDTxt,testData.parentDTxt,testData.parentDTxt,""
+	assert that ImageFound(ORNInterval.medium, text: testData.parentDTxt, SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Key"))
+	
+	log "Scenario 3 - Establish relationship with parent and child domain and verify domain gets created"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter "KEY", "Contains", "Eggplant_Domain_child_1"
+	Click "Bandu/Domain_Migration_Filter"
+	click text: "Edit", SearchRectangle:ORNScreen.scale(.75,.20,1,1)
+	DomainsUtil.updateDomain testData.parentDTxt
+	log "Verify domain got created"
+	assert that ImageFound(ORNInterval.medium, text:environment.assertions.domainUpdMsgTxt, SearchRectangle: searchAreaFlashMessage)
+	assert that ImageFound(ORNInterval.medium, text: testData.parentDTxt, SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Parent"),  validCharacters: "*", textDifference:3)
+	CaptureScreen "Scenario3_Domain_created"
+	
+	log "Scenario 4: Navigate to Domain Details screen and click on new domain button"
+	DomainsUtil.openNewDomainPage
+	log "Verify New domain screen is visible"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:"New Domain", SearchRectangle: ORNScreen.scale(0, .10, 1, 1))
+	CaptureScreen "Scenario4_New_Domain_Page"
+	
+	log "Scenario 5: Create child domain with parent as the above parent domain" 
+	DomainsUtil.createDomain testData.parentDChldTxt,testData.parentDChldTxt,testData.parentDChldTxt,testData.parentDTxt
+	log "Child domain with parent as the above created domain got created"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:environment.assertions.domainCreMsgTxt, SearchRectangle: searchArea)
+	assert that ImageFound(ORNInterval.medium, text: testData.parentDChldTxt, SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Key"))
+	assert that ImageFound(ORNInterval.medium, text: testData.parentDTxt, SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Parent"),  validCharacters: "*", textDifference:3)
+	
+	log "Scenario 6: Create sub child domain with parent as the child created domain and verify the domain created messge"
+	DomainsUtil.openNewDomainPage
+	DomainsUtil.createDomain testData.parentDSubChldTxt, testData.parentDSubChldTxt, testData.parentDSubChldTxt, testData.parentDChldTxt
+	log "Sub Child domain with parent as the Child domain got created"
+	assert that ImageFound(ORNInterval.medium, text:environment.assertions.domainCreMsgTxt, SearchRectangle: searchArea)
+	CaptureScreen "Scenario6_SubChild_Domain_created"
+	
+	log "Scenario 7: Navigate to domains tab and verify all recent created domain details displayed correctly"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	Click text:"View",SearchRectangle:BanduUtil.getDomainSummaryRowSearchArea(testData.parentDTxt), WaitFor:ORNInterval.medium
+	log "Validate Parent Domain fields"
+	assert that not ImageFound(2,text:testData.parentDTxt,SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea(environment.assertions.parentTxt))
+	assert that ImageFound(ORNInterval.medium,text: testData.parentDTxt,SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea(environment.assertions.keyTxt))
+	assert that ImageFound(text: testData.parentDTxt,SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea(environment.assertions.applicationIDTxt))
+	CaptureScreen "Scenario7_Domain_Parent_View"
+	
+	log "Scenario 8: Check if all the domains are displayed in hierarchical order"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	Click ImageLocation(text:"Any",SearchRectangle:ORNScreen.scale(1, 0, .8, 1))
+	TypeText environment.assertions.domainHierTxt
+	set parentFilterSR to ((ImageRectangle(text:"Parent",SearchRectangle:ORNScreen.scale(0.8, 0, 1,  .5)).bottomLeft+(-10,70)),RemoteScreenSize())
+	log "Domains are visible in hierarchical order"
+	assert that ImageFound(ORNInterval.medium,text:testData.parentDTxt,textDifference:0,SearchRectangle:parentFilterSR) 
+	assert that ImageFound(text:testData.parentDChldTxt,SearchRectangle:(FoundImageLocation()+(-90,0), RemoteScreenSize()))
+	assert that ImageFound(text:testData.parentDSubChldTxt,SearchRectangle:(FoundImageLocation()+(-90,0), RemoteScreenSize())) 
+	
+	log "Scenario 9: Filter the Domain by using App id and verify all the domains are displayed correctly"
+	BanduUtil.applyFilter "APP IDS", "Contains", testData.parentDChildTxt1
+	assert that ImageFound(ORNInterval.medium, text: testData.parentDChildTxt1, SearchRectangle: ORNScreen.scale(0, .18, 0.13, 0.7 )) 
+	Click text:"Domains", SearchRectangle: tabsAreaSR
+	CaptureScreen "Scenario9_Filter_by_app_id"
+	
+	log "Scenario 10: Open Edit domain screen, verify previously entered values and update any field value"
+	Click text:"Edit", SearchRectangle:BanduUtil.getDomainSummaryRowSearchArea(testData.parentDSubChldTxt)
+	wait 4  // waiting so that Edit Domain page loads fully
+	log "All previously entered values are visible for "&testData.parentDSubChldTxt&" domain"
+	assert that ImageFound(ORNInterval.medium,text:testData.parentDChldTxt,SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Parent"), validCharacters: "*", textDifference:3) 
+	assert that ImageFound(ORNInterval.medium,text:testData.parentDSubChldTxt,DPI:20,SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Key")) 
+	assert that ImageFound(ORNInterval.medium,text:testData.parentDSubChldTxt,DPI:20,SearchRectangle: BanduUtil.getDomainSummaryRowSearchArea("Application ID"))
+	CaptureScreen "Scenario10A_Domain_Parent_Edit"
+	// updating any field value
+	Click ImageLocation(text:"Key", SearchRectangle:ORNScreen.scale(0,0,.5,1))
+	TypeText controlKey & "a"
+	TypeText testData.updatedParentDSubChldTxt
+	Click ImageLocation(text:"Name", SearchRectangle:ORNScreen.scale(0,0,.5,1))
+	TypeText controlKey & "a"
+	TypeText testData.updatedParentDSubChldTxt
+	Click ImageLocation(text:"Display Name", SearchRectangle:ORNScreen.scale(0, 0, .5, 1))
+	TypeText controlKey & "a" 
+	TypeText testData.updatedParentDSubChldTxt
+	Click ImageLocation(text:"Application IDs", SearchRectangle:ORNScreen.scale(0,0,.5,1))
+	TypeText controlKey & "a"
+	TypeText "[" && quote & testData.updatedParentDSubChldTxt & quote && "]"
+	TypeText pageDown
+	wait 2 // waiting for the page to scroll down 
+	Click text:"Update Domain", SearchRectangle:ORNScreen.scale(0, 0.7, .4, 1)
+	assert that ImageFound(ORNInterval.medium, text:environment.assertions.domainKeyChangeWarning, SearchRectangle:ORNScreen.scale(.3, 0, .8, .3))
+	Click text:"OK", SearchRectangle:ORNScreen.scale(.3, 0, .8, .3)
+	assert that ImageFound(ORNInterval.medium,text:environment.assertions.domainUpdMsgTxt,SearchRectangle: ORNScreen.scale(0, 0, .4, .4))
+	CaptureScreen "Scenario10B_Domain_Parent_Updated"
+	
+	log "Sceanrio 11: Provide domain access to users" 
+	Click text:"Users",SearchRectangle:tabsAreaSR
+	click imagelocation(text:"USERNAME",SearchRectangle:ORNScreen.scale(.83,.20,1,1))+(100,0)
+	TypeText userDomainMaintainer.username
+	Click "Bandu/Domain_Migration_Filter"
+	click text:"Edit",SearchRectangle:ORNScreen.scale(.45,.20,1,1)
+	click text:"Maintainer Domain", DPI: 200
+	click ImageLocation(text:Domains,SearchRectangle:ORNScreen.scale(0,.25,.5,1))+(400,0)
+	TypeText testData.parentDChildTxtWithSign
+	click text:"Update User"
+	Click text:"Edit User",SearchRectangle:tabsAreaSR
+	click ImageLocation(text:Domains,SearchRectangle:ORNScreen.scale(0,.25,.5,1))+(400,0)
+	TypeText testData.parentDTxt
+	KeyDown ControlKey
+	click imagelocation(text:testData.parentDChildTxtWithSign, SearchRectangle:ORNScreen.scale(0,.25,.5,1), DPI:"200", IgnoreSpaces:"Yes", EnhanceLocalContrast:"Yes", EnableAggressiveTextExtraction:"Yes")
+	KeyUp ControlKey
+	click text: "Update User"
+	assert that ImageFound(ORNInterval.medium,text: testData.updateUserSuccessMsg)
+	CaptureScreen "Scenario11_User_updated_to_Domain_maintainer"
+	
+	log "Scenario 12: Logout of the application and LogIn with domain maintainer user"
+	Click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	DskBrowser.selectAddressandEnterURL banduURL
+	BanduUtil.banduLogin userDomainMaintainer.username, userDomainMaintainer.password
+	WaitFor ORNInterval.medium, text :"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	assert that ImageFound(ORNInterval.medium,text:"Dashboard")
+	CaptureScreen "Scenario12_Logedin_Successfully"
+	
+	log "Scenario 13: Verify user has access to above set domains"
+	Click text:"Definitions",SearchRectangle:tabsAreaSR
+	Click text:"Domain Configuration Item",SearchRectangle: ORNScreen.scale(0, .05, 1, .2)
+	Click text:"New Domain Configuration Item Definition"
+	click ImageLocation(text:Domain,SearchRectangle:ORNScreen.scale(0,.25,.5,1))+(400,0)
+	TypeText testData.parentDChldTxt
+	assert that ImageFound( text: testData.parentDTxt, SearchRectangle:ORNScreen.scale(0,.25,.5,1))
+	
+	log "Scneario 14: Logout of the application and LogIn with admin user"
+	Click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	DskBrowser.selectAddressandEnterURL banduURL
+	BanduUtil.banduLogin userAdmin.username, userAdmin.password
+	WaitFor ORNInterval.medium, text :"Logout",SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	CaptureScreen "Scenario14_login_as_admin"
+	
+	log "Scenario 15: Delete domain popup displayed"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.parentDSubChldTxt
+	assert that ImageFound(ORNInterval.medium, text:environment.assertions.areYouSureText,SearchRectangle:ORNScreen.scale(.3, 0, .8, .3))
+	CaptureScreen "Scenario15_Delete_Popup"
+	
+	log "Scenario 16: Deleting domain"
+	Click "Button_OK"
+	assert that ImageFound(ORNInterval.medium,text:environment.assertions.domainDelMsgTxt,SearchRectangle: searchArea)
+	CaptureScreen "Scenario16_Delete_Domain"
+	
+	log "Scenario 17: Delete child domain from the Domain table without using the DomainsUtil.deleteDomain handler"
+	click text:"Delete", SearchRectangle:BanduUtil.getDomainSummaryRowSearchArea(testData.parentDChildTxt1)
+	click (waitfor: ORNInterval.medium, image:"Button_OK" ,SearchRectangle:ORNScreen.scale(.3,0,.7,.4))
+	log "Domain was successfully destroyed from the Domain table"
+	assert that ImageFound(ORNInterval.medium, text: testData.domainDelMsgTxt, SearchRectangle: searchAreaFlashMessage)
+	BanduUtil.applyFilter "KEY", "Contains", testData.parentDChildTxt1
+	assert that ImageFound(ORNInterval.medium, text: testData.domainsNotFoundTxt, SearchRectangle: searchAreaDomainNotFound)
+	CaptureScreen "Scenario17_Delete_Child_Domain"
+	
+	// Re-setting the pre-req
+	log "Re-setting the pre-req"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.parentDChldTxt
+	Click "Button_OK"
+	DomainsUtil.deleteDomain testData.parentDTxt
+	Click "Button_OK"
+	log "Scenario 18: Logout of the application"
+	Click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	ORNEnvironment.cleanup environment
+Catch exception
+	
+	// Re-setting the pre-req
+	log "Re-setting the pre-req"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.parentDChldTxt
+	Click "Button_OK"
+	DomainsUtil.deleteDomain testData.parentDTxt
+	Click "Button_OK"
+	ORNEnvironment.handleException environment, exception
+end try

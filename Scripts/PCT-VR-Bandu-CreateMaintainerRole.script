@@ -1,0 +1,226 @@
+﻿(** 
+	    Test Case: PCT-VR-Bandu-CreateMaintainerRole
+          RQM Test Case ID: 38
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("PCT-VR-Bandu-CreateMaintainerRole.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+set maxWaitTime to global maxWaitTime
+
+try 
+	set searchArea to (0, .10, 1, .3)
+	set searchHome to ORNScreen.scale(.75, .003, 1, .15) 
+	set user to environment.users
+	set testData to environment.assertions
+	set crruentMonthName to the long monthName
+	set cmrUser1 to "AAA_EggplantAUT_A"
+	set cmrUser2 to "AAA_EggplantAUT_B"
+	set cmrUser3 to "AAA_EggplantAUT_C"
+	set cmrUser4 to "AAA_EggplantAUT_D"
+	
+	log "Scenario01A - Enter the Username and Select the Maintainer Capability in the Role and click on Create User Button, Verify error message Tenant can't be  blank is displaying"
+	DskUtilities.dismissRulesOfRoad
+	DskBrowser.launchChromeIncognitoMaxURL(environment.url.loginBandu)
+	BanduUtil.banduLogin user.userName, user.password
+	waitfor maxWaitTime, text:testData.userTxt 
+	
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	click text:testData.newUser, SearchRectangle:ORNScreen.scale(.89,.10,1,.20),waitfor:maxWaitTime
+	assert that ImageFound(text:testData.userDetailsTxt, SearchRectangle: searchArea)
+	assert that ImageFound(maxWaitTime,text:testData.useNameTxt, SearchRectangle: searchArea)
+	click FoundImageLocation()
+	typetext cmrUser1
+	assert that ImageFound(maxWaitTime,text:testData.maintainerCapTxt, SearchRectangle: searchArea)
+	click FoundImageLocation()
+	click "Button_Create_User/CreateUser" 
+	assert that ImageFound(maxWaitTime,text:testData.tenantErrorMsgTxt,DPI:200,SearchRectangle: searchArea) 
+	
+	log "Scenario01B - Select the Tenants and Click on Create User and verify the success message"
+	FeaturesUtil.createTenant testData.selectTenantTxt, testData.selectTenantTxt, testData.selectTenantTxt
+	FeaturesUtil.createTenant testData.selectTenantTxt2, testData.selectTenantTxt2, testData.selectTenantTxt2
+	assert that ImageFound(maxWaitTime,text:testData.selectTenantTxt,SearchRectangle: ORNScreen.scale(0, 0.05, 0.2, 0.2)) 
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	click text:testData.newUser, SearchRectangle:ORNScreen.scale(.89,.10,1,.20),waitfor:maxWaitTime 
+	click text:testData.tenants, SearchRectangle:ORNScreen.scale(0, .35, 0.1, 0.5), WaitFor:ORNInterval.medium
+	typetext "Eggplant_test_" 
+	assert that ImageFound(maxWaitTime, text: testData.selectTenantTxt, SearchRectangle: searchArea) 
+	assert that ImageFound(maxWaitTime, text: testData.selectTenantTxt2, SearchRectangle: searchArea) 
+	click text:testData.useNameTxt, SearchRectangle:ORNScreen.scale(0, .2, 0.1, 0.35), WaitFor:ORNInterval.medium
+	typetext cmrUser1
+	click text:testData.administrator, SearchRectangle:ORNScreen.scale(0.2, .27, 0.3, 0.38), WaitFor:ORNInterval.medium 
+	click "Button_Create_User/CreateUser"
+	assert that ImageFound(maxWaitTime,text:testData.userSuccessMsgTxt,SearchRectangle: searchArea) 
+	CaptureScreen "Scenario01B_User_Was_Successfully_Created_Msg" 
+	
+	log "Scenario02- Enter the Username and Select the Maintainer Domain in the Role and click on Create User Button, Verify error message Domain Can't be  blank is displaying"
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	click text:testData.newUser, SearchRectangle:ORNScreen.scale(.89,.10,1,.20),waitfor:maxWaitTime
+	assert that ImageFound(maxWaitTime,text:testData.userDetailsTxt, SearchRectangle: searchArea)
+	assert that ImageFound(maxWaitTime,text:testData.useNameTxt, SearchRectangle: searchArea)
+	click FoundImageLocation()
+	typetext cmrUser2
+	assert that ImageFound(maxWaitTime,text:testData.maintainerDomtxt, SearchRectangle: searchArea)
+	click FoundImageLocation()
+	click "Button_Create_User/CreateUser"
+	assert that ImageFound(maxWaitTime,text:testData.domainErrorMsgTxt, SearchRectangle: searchArea)
+	
+	log "Scenario02B -Select the Domain and click on Create User and verify success message"
+	click text:testData.domains, SearchRectangle:ORNScreen.scale(0, .4, 0.1, 0.45), WaitFor:ORNInterval.medium
+	typetext testData.selectDomainTxt
+	TypeText returnKey
+	click "Button_Create_User/CreateUser"
+	assert that ImageFound(maxWaitTime,text:testData.userSuccessMsgTxt,SearchRectangle: searchArea) 
+	CaptureScreen "Scenario02B_User_Was_Successfully_Created_Msg"
+	
+	log "Scenario03 - Click on the Users Tab and verify whether the created user is there or not"
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	assert that ImageFound(maxWaitTime,text:cmrUser2, SearchRectangle: searchArea) 
+	
+	log "Scenario04 - Click on the Column User Name Created At Updated At and verify it's sorting accordingly"
+	assert that  ImageFound(Text:cmrUser1, DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	click FoundImageLocation()
+	assert that ImageFound(text:"AAA_EggplantAUT_A",DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	wait 5// to load the page
+	assert that ImageFound(text:testData.useNameTxt, DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	click FoundImageLocation()
+	assert that ImageFound(Text:cmrUser1,DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	wait 5// to load the page
+	assert that ImageFound(Text:"Created At", DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	click FoundImageLocation()
+	assert that ImageFound(text:crruentMonthName,DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .4))
+	assert that ImageFound(Text:"Created At", DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	click FoundImageLocation()
+	assert that ImageFound(text:"July",DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	wait 5// to load the page
+	assert that ImageFound(Text:"Updated At", DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	click FoundImageLocation()
+	assert that ImageFound(text:crruentMonthName,DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .4))
+	assert that ImageFound(Text:"Updated At", DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .4)) 
+	click FoundImageLocation()
+	assert that ImageFound(text:"July",DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .5)) 
+	
+	log "Scenario05 - Click on Edit for any of the Created User, Modify the details and click on Update User"
+	click text:"USERNAME", SearchRectangle:ORNScreen.scale(.70, .33, 1, .50),waitfor:maxWaitTime
+	typetext cmrUser1,returnkey
+	waitfor maxWaitTime, text :"Search Status:"
+	click text:"Edit", SearchRectangle:ORNScreen.scale(.60, 1, 1, .13),waitfor:maxWaitTime
+	waitfor maxWaitTime, text:"Edit User"
+	assert that ImageFound(maxWaitTime,text:testData.administrator,DPI:"200", EnableAggressiveTextExtraction:"Yes")
+	click FoundImageLocation()
+	click "Button_Create_User/UpdateUser"
+	assert that ImageFound(maxWaitTime,text:testData.userUpdatedMsgTxt,SearchRectangle: searchArea) 
+	CaptureScreen "Scenario05_User_Was_Successfully_Updated_Msg"
+	
+	log "Scenario06 - Enter the Username in the Filter box and search with all the combination in the Dropdown box "Contains" "Equals" "Starts With" "Ends With" and click on Filter"
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	assert that ImageFound(maxWaitTime,text:cmrUser1, SearchRectangle: searchArea) 
+	BanduUtil.applyFilter "USERNAME","Equals",cmrUser1
+	click text:"Clear Filters", SearchRectangle:ORNScreen.scale(.88, .45, 0.99, .56),waitfor:maxWaitTime
+	BanduUtil.applyFilter "USERNAME","Starts with", "EggplantAUT"
+	click text:"Clear Filters", SearchRectangle:ORNScreen.scale(.88, .45, 0.99, .56),waitfor:maxWaitTime
+	BanduUtil.applyFilter "USERNAME","Ends with", "0"
+	
+	log " Scenario07 - Enter the Username and Select the Maintainer Domain in the Role and click on Create User Button, Verify Domains can't be blank, then Select the Child Domains and click on Create User button."
+	Click text:testData.domains, SearchRectangle:ORNScreen.scale(0.1, 0.05, 0.20, 0.13)
+	Click text:testData.newDomain, SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	DomainsUtil.createDomain "childDomain", "childDdomain", "childDdomain", testData.selectDomainTxt
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	click text:testData.newUser, SearchRectangle:ORNScreen.scale(.89,.10,1,.20),waitfor:maxWaitTime
+	click text:testData.useNameTxt, SearchRectangle:ORNScreen.scale(0, .2, 0.1, 0.35), WaitFor:ORNInterval.medium
+	typetext cmrUser3
+	assert that ImageFound(maxWaitTime,text:"Maintainer Domain",DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	click FoundImageLocation()
+	click "Button_Create_User/CreateUser"
+	assert that ImageFound(maxWaitTime,text:testData.domainErrorMsgTxt,SearchRectangle: searchArea)
+	click text:testData.domains, SearchRectangle:ORNScreen.scale(0, .3, 0.1, 0.55), WaitFor:ORNInterval.medium
+	typetext "childDdomain"
+	typetext return
+	click "Button_Create_User/CreateUser"
+	assert that ImageFound(maxWaitTime,text:testData.userSuccessMsgTxt,SearchRectangle: searchArea)
+	
+	log "Scenario08 - Create tenant Restriction Maintaner Domain"
+	Click text:testData.domains,SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	Click text:testData.newDomain, SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	DomainsUtil.createDomain "Automation Master Domain Parent", "Automation Master Domain Parent", "Automation Master Domain Parent" 
+	Click text:testData.domains,SearchRectangle:ORNScreen.scale(0, .05, 1, .2) 
+	Click text:testData.newDomain, SearchRectangle:ORNScreen.scale(.7, 0, 1, .3) 
+	DomainsUtil.createDomain "Automation Master Domain Child", "Automation Master Domain Child", "Automation Master Domain Child", "Automation Master Domain Parent" 
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	click text:"USERNAME", SearchRectangle:ORNScreen.scale(.70, .32, 1, .50),waitfor:maxWaitTime
+	typetext user.userName,returnkey
+	click text:"Edit", SearchRectangle:ORNScreen.scale(.60, 1, 1, .13),waitfor:maxWaitTime 
+	click text:testData.domains, SearchRectangle:ORNScreen.scale(0, .3, 0.1, 0.55), WaitFor:ORNInterval.medium 
+	typetext "Automation Master Domain" 
+	put ("Automation Master Domain Parent", "-Automation Master Domain Child") into dummyApplicationList
+	set applications to readtext(ORNScreen.scale(0.1, 0.40, 1, 0.5))
+	split applications by newline
+	assert that applications equals dummyApplicationList
+	click text:testData.domains, SearchRectangle:ORNScreen.scale(0, .3, 0.1, 0.55), WaitFor:ORNInterval.medium
+	typetext "Automation Master Domain Parent", returnkey
+	assert that ImageFound(maxWaitTime,text:"Maintainer Domain",SearchRectangle: searchArea) 
+	click FoundImageLocation()
+	click "Button_Create_User/UpdateUser"
+	assert that ImageFound(maxWaitTime,text:"User was successfully updated",SearchRectangle: searchArea) 
+	CaptureScreen "Scenario08_User_Was_Successfully_Updated_Msg"
+	
+	log "Scenario09 - Log in with maintainer - user "
+	DskBrowser.launchChromeIncognitoMaxURL(environment.url.loginBandu)
+	BanduUtil.banduLogin user.userName, user.password
+	click text:testData.userTxt, SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	waitfor maxWaitTime, text:testData.newUser
+	click text:testData.newUser, SearchRectangle:ORNScreen.scale(.89,.10,1,.20),waitfor:maxWaitTime
+	click text:testData.useNameTxt, Searchrectangle:ORNScreen.scale(.01,.20,.07,.55),waitfor:maxWaitTime
+	typetext cmrUser4
+	assert that ImageFound(maxWaitTime,text:"Maintainer Domain",SearchRectangle: searchArea) 
+	click FoundImageLocation()
+	click text:testData.domains, SearchRectangle:ORNScreen.scale(0, .3, 0.1, 0.55), WaitFor:ORNInterval.medium
+	typetext "Automation Master Domain Parent", returnkey
+	assert that ImageFound(maxWaitTime,text:"Automation Master Domain Parent",SearchRectangle: searchArea) 
+	click FoundImageLocation()
+	click "Button_Create_User/CreateUser"
+	assert that ImageFound(maxWaitTime,text:"User was successfully created",SearchRectangle: searchArea) 
+	CaptureScreen "Scenario09_User_Was_Successfully_Created_Msg"
+	
+	log "Scenario10 - Navigate back to Tenant screen, Apply Navigation step and login as User B and Select Tenant dropdown"
+	click text:"Tenants", SearchRectangle:ORNScreen.scale(.20, .068, 0.12, .12),waitfor:maxWaitTime
+	assert that ImageFound(text:"view", SearchRectangle:ORNScreen.scale(.77, .2, .85, .25))
+	click text:"Configuration Items", SearchRectangle:ORNScreen.scale(.26, .070, 0.38, .11),waitfor:maxWaitTime
+	click text:"Domain Configuration Items",SearchRectangle:ORNScreen.scale(.26, .070, 0.39, .24), WaitFor:maxWaitTime
+	click text:"New Domain Configuration Item", SearchRectangle:ORNScreen.scale(.80,.10,1,.20), WaitFor:maxWaitTime
+	
+	log "Scenario11 - Click domain dropdown and Check whether only Domain and Tenant of a particular Maintainer-User is showing"
+	BanduUtil.selectDropDownValue "Domain*","Automation Master Domain Parent", SearchRectangle:ORNScreen.scale(0, 0.22, 0.2, 0.35)
+	assert that ImageFound(maxWaitTime,text:"Automation Master Domain Parent",SearchRectangle: searchArea) 
+	log "Click Tenant dropdown and Select TenantA"
+	BanduUtil.selectDropDownValue "Tenant", testData.tenantMaintainerUser
+	assert that ImageFound(maxWaitTime, text:testData.tenantMaintainerUser, SearchRectangle: searchArea) 
+	
+	log "Scenario12 - Logout of the app"
+	click text:"Logout", SearchRectangle:ORNScreen.scale(.92,.07,1,.20),waitfor:maxWaitTime
+	assert that ImageFound(maxWaitTime,text:"LOG OUT",CaseSensitive:"True",SearchRectangle: searchArea) 
+	
+	// re-setting the prereq
+	DskBrowser.launchChromeIncognitoMaxURL(environment.url.loginBandu)
+	BanduUtil.banduLogin user.userName1, user.password1
+	BanduUtil.changeUserRole user.userName, text:testData.administrator
+	click text:testData.userTxt,SearchRectangle:ORNScreen.scale(.0, .06,1, .10)
+	BanduUtil.deleteUser "AAA_EggplantAUT_A"
+	BanduUtil.deleteUser "AAA_EggplantAUT_B"
+	BanduUtil.deleteUser "AAA_EggplantAUT_C"
+	BanduUtil.deleteUser "AAA_EggplantAUT_D"
+	Click text:testData.domains,SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	DomainsUtil.deleteDomain "Automation Master Domain Parent"
+	Click "Button_OK"
+	click text:"Logout", SearchRectangle:ORNScreen.scale(.92,.07,1,.20),waitfor:maxWaitTime
+	ORNEnvironment.cleanup environment
+	
+Catch exception	
+	ORNEnvironment.handleException environment, exception	
+end try

@@ -1,0 +1,195 @@
+﻿(** 
+      Test Case:  PCT-VR-Bandu-OnBoardDomain (Streamline Domain Onboarding)
+      RQM Test Case ID: 108043
+**)
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+
+params testArguments
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("PCT-VR-Bandu-OnboardDomain.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+set maxWaitTime to global maxWaitTime
+try 
+	
+	set user to environment.users
+	set testData to environment.assertions
+	set banduURL to environment.url.banduURL
+	set gitHubURL to environment.url.gitHubURL
+	
+	// Getting yml files from gitHub and storing it in local
+	DskBrowser.launchChromeIncognitoMaxURL(environment.url.wrongDomainDetails)
+	waitFor ORNInterval.medium,Text:"domain:"
+	BanduUtil.getYmlFile "wrongDomainDetails.yml"
+	DskBrowser.openTabURLInChrome (environment.url.Test_ItemName)
+	wait 5 // To load the page
+	BanduUtil.getYmlFile "Test_ItemName.png"
+	DskBrowser.openTabURLInChrome (environment.url.emptyFile)
+	wait 5 // To load the page
+	BanduUtil.getYmlFile "emptyFile.yml"
+	DskBrowser.openTabURLInChrome (environment.url.successOne)
+	waitFor ORNInterval.medium,Text:"domain:"
+	BanduUtil.getYmlFile "successOne.yml"
+	DskBrowser.openTabURLInChrome (environment.url.successTwo)
+	waitFor ORNInterval.medium,Text:"domain:"
+	BanduUtil.getYmlFile "successTwo.yml"
+	
+	// Scenario01 - Verify Onboard Domain button is visible for Non-Admin user.
+	log "Onboard Domain button is visible for Non-Admin user."
+	DskBrowser.launchChromeIncognitoMaxURL(environment.url.banduURL)
+	BanduUtil.banduLogin user.userName1, user.password1
+	click (text:"Domains", DPI:"200", WaitFor:8,SearchRectangle:ORNScreen.scale(0, .06,.4, .6))
+	waitfor ORNInterval.medium, text:"Domains"
+	Assert that not ImageFound(30,text:"Onboard Domain", SearchRectangle:ORNScreen.scale(.89,.10,1,.20))
+	DskBrowser.openTabURLInChrome(environment.url.onboard_domain_url)
+	Assert that ImageFound(30,text:"You are not authorized to perform this action")
+	CaptureScreen "Scenario01_Non_Admin_Logs_In"
+	
+	// Scenario02 - Login and click Onboard Domain button and verify file and icon upload options visible.
+	log "Login and click Onboard Domain button and verify file and icon upload options visible."
+	DskBrowser.launchChromeIncognitoMaxURL(banduURL)
+	BanduUtil.banduLogin user.userName, user.password
+	waitfor ORNInterval.medium, text:"Domains"
+	click text:"Domains", SearchRectangle:ORNScreen.scale(.0, .06,.4, .6)
+	Assert that ImageFound(30,text:"Onboard Domain", SearchRectangle:ORNScreen.scale(.89,.10,1,.20))
+	click FoundImageLocation()
+	Assert that ImageFound(30,text:"Choose File", DPI:"200", SearchRectangle:ORNScreen.scale(.1, .12,.4, .24))
+	CaptureScreen "Scenario02_Onboard_Domain_Page"
+	
+	// Scenario03 - Click on the  submit button without uploading anything, verify the error message."
+	log "Click on the  submit button without uploading anything, verify that error message." 
+	click "Button_Submit/Button_OnBoardSubmit"
+	Assert that ImageFound(30,text:"please upload yml file")
+	Click(text:"OK",DPI:"200",SearchRectangle:ORNScreen.scale(.5, .05,1, .33))
+	
+	// Scenario04 – Upload yml file which consist invalid domain information and click submit, verify the error message 
+	log " Upload yml file which consist invalid domain information and click submit, verify the error message "
+	click (text:"Choose File", DPI:"200",SearchRectangle:ORNScreen.scale(.1, .12,.4, .24))
+	click (text:"Desktop", DPI:"200")
+	click (text:"wrongDomainDetails",DPI:"200")
+	typetext returnKey
+	click "Button_Submit/Button_OnBoardSubmit"
+	Assert that ImageFound(30,text:"Failure Messages")
+	Assert that ImageFound(30,text:"In domain details, Key can't be blank")
+	CaptureScreen "Scenario04_Failure_Message"
+	typetext F5
+	
+	// Scenario05 - Upload an empty yml file and click submit, verify the error messages
+	log "Upload an empty yml file and click submit, verify the error messages"
+	click (text:"Choose File", DPI:"200",SearchRectangle:ORNScreen.scale(.1, .12,.4, .24))
+	click (text:"Desktop", DPI:"200")
+	click (text:"emptyFile",DPI:"200")
+	typetext returnKey
+	click "Button_Submit/Button_OnBoardSubmit"
+	Assert that ImageFound (30,Text:"Error occurred during loading yml file, please upload proper yml file again")
+	typetext F5
+	
+	// Scenario06 -  Without uploading yml file, upload only icon file and click submit.
+	log "Without uploading yml file, upload only icon file and click submit."
+	click (text:"Choose File", DPI:"200",SearchRectangle:ORNScreen.scale(.1, .30,.9, .23))
+	click (text:"Desktop", DPI:"200")
+	click (text:"Test_ItemName", DPI:"200", ValidWords:"Test_ItemName")
+	typetext returnKey
+	click "Button_Submit/Button_OnBoardSubmit"
+	Assert that ImageFound(30,text:"please upload yml file")
+	click (Text:"OK",DPI:"200",SearchRectangle:ORNScreen.scale(.5, .05,1, .33))
+	CaptureScreen "Scenario06_Invalidfile_Error_Message"
+	typetext F5
+	
+	// Scenario07 - Upload invalid format icon and click on submit, verify the error message.
+	log "Upload invalid format icon and click on submit, verify the error message."
+	click (text:"Choose File", DPI:"200",SearchRectangle:ORNScreen.scale(.1, .30,.9, .23))
+	click (text:"successOne", DPI:"200", IgnoreSpaces:"Yes", ValidWords:"successOne")
+	typetext returnKey
+	click "Button_Submit/Button_OnBoardSubmit"
+	Assert that ImageFound (30,Text:"Please upload image file with", DPI:"200", ValidWords:"Please upload image file with")
+	click (text:"OK",DPI:"200",SearchRectangle:ORNScreen.scale(.5, .05,1, .33))
+	CaptureScreen "Scenario07_Error_Message"
+	typetext F5
+	
+	//  Scenario08 - Upload yml file consist only domain information and click submit, click on domain tab check whether created domain is visible.
+	log "Upload yml file consist only domain information and click submit, click on domain tab check whether created domain is visible."
+	click (text:"Choose File", DPI:"200",SearchRectangle:ORNScreen.scale(.1, .12,.4, .24))
+	click (text:"Desktop", DPI:"200")
+	click (text:"successOne",DPI:"200")
+	typetext returnKey
+	click (text:"Choose File", DPI:"200",SearchRectangle:ORNScreen.scale(.1, .30,.9, .23))
+	click (text:"Test_ItemName", DPI:"200", ValidWords:"Test_ItemName")
+	typetext returnKey
+	click "Button_Submit/Button_OnBoardSubmit"
+	Assert that ImageFound(30,text:"Success Messages")
+	Assert that ImageFound(30,text:"Domain created successfully")
+	Assert that ImageFound(30,text:"Failure Messages")
+	Assert that ImageFound(30,text:"In domain configuration item1, Key can't be blank")
+	Assert that ImageFound(30,text:"Invalid tenant key, tenant1")
+	Assert that ImageFound(30,text:"Invalid tenant key, tenant2")
+	Assert that ImageFound(30,text:"In feature1 details, Key can't be blank")
+	click text:"Domains", SearchRectangle:ORNScreen.scale(.1, .05,.5, .12)
+	Assert that ImageFound (Text:"domain_key_One", DPI:"200", ValidWords:"domain_key_One")
+	CaptureScreen "Scenario08_Success_Message"
+	
+	// Scenario 09 - Upload same yml file as above success msg will be shown stating domain already exist
+	log "Upload same yml file as above success msg will be shown stating domain already exist"
+	Assert that ImageFound(30,text:"Onboard Domain", SearchRectangle:ORNScreen.scale(.89,.10,1,.20))
+	click FoundImageLocation()
+	click (text:"Choose File", DPI:"200",SearchRectangle:ORNScreen.scale(.1, .12,.4, .24))
+	click (text:"Desktop", DPI:"200")
+	click (text:"successTwo",DPI:"200")
+	typetext returnKey
+	click "Button_Submit/Button_OnBoardSubmit"
+	Assert that ImageFound(30,text:"Success Messages")
+	Assert that ImageFound(30,text:"Domain already exists")
+	Assert that ImageFound(30,text:"Domain configuration item1 definition created successfully")
+	Assert that ImageFound(30,text:"Domain configuration item1 saved successfully")
+	Assert that ImageFound(30,text:"Domain configuration item2 definition created successfully")
+	Assert that ImageFound(30,text:"Domain configuration item2 saved successfully")
+	Assert that ImageFound(30,text:"The feature1 created successfully")
+	Assert that ImageFound(30,text:"Domain associated to feature1")
+	Assert that ImageFound(30,text:"The feature2 created successfully")
+	Assert that ImageFound(30,text:"Domain associated to feature2")
+	click text:"Domains", SearchRectangle:ORNScreen.scale(.1, .05,35, .12)
+	Assert that ImageFound(30,text:"domain_key_One", SearchRectangle:ORNScreen.scale(.0, .1,78, .25))
+	click text:"Definitions", SearchRectangle:ORNScreen.scale(.1, .05,.5, .12)
+	click text:"Domain Configuration Item Definition", SearchRectangle:ORNScreen.scale(.1, .1,.5, .22)
+	Assert that ImageFound(30,text:"definition_key_One", SearchRectangle:ORNScreen.scale(.0, .1,78, .25))
+	Assert that ImageFound(30,text:"definition_key_Two", SearchRectangle:ORNScreen.scale(.0, .1,78, .25))
+	click (text:"Configuration Items", DPI:"200")
+	click (text:"Domain Configuration Items", DPI:"200")
+	Assert that ImageFound(30,text:"domain_key_One", SearchRectangle:ORNScreen.scale(.0, .1,78, .25))
+	click (text:"Features", DPI:"200", WaitFor:8)
+	Assert that ImageFound(30,text:"feature_key_One", SearchRectangle:ORNScreen.scale(.0, .1,78, .25))
+	Assert that ImageFound(30,text:"feature_key_Two", SearchRectangle:ORNScreen.scale(.0, .1,78, .25))
+	click (text:"feature_Name_One",DPI:"200")
+	Repeat until imagefound( "domain_key_One")
+		typetext pageDown 
+		wait 5 // To load page
+	End Repeat
+	CaptureScreen "Scenario09_Feature_Tab"
+	
+	// Search for a domain_key_One user and go to edit to confirm icon is uploaded
+	click text:"KEY", SearchRectangle:ORNScreen.scale(.70, .33, 1, .50),waitfor:ORNInterval.medium
+	typetext "domain_key_One",returnkey
+	waitfor ORNInterval.medium, text :"Search Status:"
+	click text:"Edit", SearchRectangle:ORNScreen.scale(.60, 1, 1, .13),waitfor:ORNInterval.medium
+	waitfor ORNInterval.medium, text:"Edit Domain"
+	Assert that ImageFound(maxWaitTime,text:"Remove Icon",DPI:"200", EnableAggressiveTextExtraction:"Yes")
+	
+	log "re-setting Pre-requisite"
+	FeatureUtil.deleteFeature testData.featureValueOne
+	FeatureUtil.deleteFeature testData.featureValueTwo
+	DomainsUtil.deleteDomainConfigItem  testData.domainValue
+	DomainsUtil.deleteDomainConfigItemDefinition testData.domainConfItemDefValue
+	click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	click imagelocation(text:"Key",SearchRectangle:ORNScreen.scale(.83,.20,1,1))+(100,0)
+	TypeText testData.domainValue
+	click "Bandu/Domain_Migration_Filter"
+	DomainsUtil.deleteDomain testData.domainValue
+	click "Bandu/Button_OK"
+	click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)	
+	
+	ORNEnvironment.cleanup environment
+Catch exception    
+	ORNEnvironment.handleException environment, exception    
+end try

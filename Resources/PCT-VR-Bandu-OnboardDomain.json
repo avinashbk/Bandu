@@ -1,0 +1,55 @@
+{
+	"suts": [{
+		"name": "Windows-VM"
+
+	}],
+	"dev": {
+		"domain": "deveng",
+		"assertions": {
+			"domainValue": "domain_key_One",
+			"domainConfItemDefValue": "definition_key_One",
+			"featureValueOne":"feature_Name_One",
+			"feauteValueTwo":"feature_Name_Two"
+		},
+		"url": {
+			"banduURL": "https://bandu-test.devcernerpowerchart.com/admin",
+			"onboard_domain_url": "https://bandu-test.devcernerpowerchart.com/admin/domain_onboard",
+			"wrongDomainDetails": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/wrongDomainDetails.yml",
+			"emptyFile": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/emptyFile.yml",
+			"successOne": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/successOne.yml",
+			"successTwo": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/successTwo.yml",
+			"Test_ItemName": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Shared.suite/Images/Bandu-Shared/Text_ItemName.png"
+		},
+		"users": [{
+			"userName": "",
+			"password": "",
+			"username1": "",
+			"password1": ""
+		}]
+	},
+
+	"staging": {
+		"domain": "stgeng",
+		"assertions": {
+			"domainValue": "domain_key_One",
+			"domainConfItemDefValue": "definition_key_One",
+			"featureValueOne":"feature_Name_One",
+			"feauteValueTwo":"feature_Name_Two"
+		},
+		"users": [{
+			"username": "",
+			"password": "",
+			"username1": "",
+			"password1": ""
+		}],
+		"url": {
+			"banduURL": "https://bandu.sandboxcernerpowerchart.net/admin",
+			"onboard_domain_url": "https://bandu.sandboxcernerpowerchart.net/admin/domain_onboard",
+			"wrongDomainDetails": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/wrongDomainDetails.yml",
+			"emptyFile": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/emptyFile.yml",
+			"successOne": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/successOne.yml",
+			"successTwo": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/successTwo.yml",
+			"Test_ItemName": "https://raw.github.cerner.com/EggPlant/IPDEV-Orion-Bandu/master/Bandu-Test.suite/Resources/Bandu-Support/sample_Image.png"
+		}
+	}
+}

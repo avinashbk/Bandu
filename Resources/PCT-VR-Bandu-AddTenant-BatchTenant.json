@@ -1,0 +1,45 @@
+{
+	"suts": [{
+		"name": "Windows VM"
+	}],
+	"dev": {
+		"domain": "dev",
+		"assertions": {
+            		"tenantKeyChangeWarning":"Warning! Changing the tenant key is a destructive action"
+        	},
+		"endpoint": "https://bandu-test.devcernerpowerchart.com/admin"
+	},
+	"staging": {
+		"domain": "Stgeng",
+		"assertions": {},
+		"endpoint": "http://bandu.sandboxcernerpowerchart.net/admin"
+	},
+	"Tenants": {
+		"NewTenant":{
+			"Key": "Automation 648 New Tenant",
+			"Name": "Automation 648 New Tenant",
+			"Description": "New Automation Script"
+		},
+		"UpdatedTenant":{
+			"Key": "Automation 648 Updated",
+			"Name": "Automation 648 Updated",
+			"Description": "Updated Automation Script"
+		},
+		"Tenant1":{
+			"Key": "Automation 648 Number 1",
+		},
+		"Tenant2":{
+			"Key": "Automation 648 Number 2"
+		},
+		"Tenant3":{
+			"Key": "Automation 648 Number 3"
+		}
+	},
+	"SystemAccountInfo": {
+        	"Key": "d3aa4bed-c936-4d76-87d3-d36f5aacc444",
+        	"Type": "System Account",
+        	"Type_Output": "SystemAccountTenant",
+        	"Name": "CERNER:USER_ROSTER_BROWSER:IT",
+        	"Description": "User Roster Browser, IT"
+    	}
+}

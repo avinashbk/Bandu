@@ -1,0 +1,480 @@
+﻿(** 
+	Test Case: PCT-VR-Bandu-Features
+	RQM Test Case ID: 533
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("PCT-VR-Bandu-Features.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+set testData to environment.assertions
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+
+try	
+	// Setting reusable search rectangles and variables
+	set tabsAreaSR to ORNScreen.scale(0, .05, 1, .2)
+	set searchArea to ORNScreen.scale(0, .18, 1, 1)
+	set userQueryFieldArea to ORNScreen.scale(0,0.22,0.1,0.6)
+	set banduURL to environment.endpoint
+	set userAdmin to item 1 of environment.users
+	set userMaintainerDomain to item 2 of environment.users
+	set filterSRArea to ORNScreen.scale(.7, 0, 1, 1)
+	
+	// Open the harness url and sign in
+	DskUtilities.dismissRulesOfRoad
+	DskBrowser.launchChromeIncognitoMaxURL banduURL
+	BanduUtil.banduLogin userAdmin.username, userAdmin.password
+	WaitFor ORNInterval.medium, image: "Bandu/Dashboard/Label_DashboardWelcomeMessage"
+	FeaturesUtil.createTenant testData.tenant_feature, testData.tenant_feature, testData.tenant_feature
+	FeaturesUtil.createChildTenant testData.tenant_feature, testData.tenant_feature_child, testData.tenant_feature_child, testData.tenant_feature_child
+	Click text:"Domains", SearchRectangle:tabsAreaSR
+	Click text:"New Domain", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	waitFor ORNInterval.medium, text:"Domain Details"
+	DomainsUtil.createDomain testData.parent_domain, testData.parent_domain, testData.parent_domain, ""
+	Click text:"Domains", SearchRectangle:tabsAreaSR
+	Click text:"New Domain", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	waitFor ORNInterval.medium, text:"Domain Details"
+	DomainsUtil.createDomain testData.sorted_domain1, testData.sorted_domain1, testData.sorted_domain1, ""
+	Click text:"Domains", SearchRectangle:tabsAreaSR
+	Click text:"New Domain", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	waitFor ORNInterval.medium, text:"Domain Details"
+	DomainsUtil.createDomain testData.sorted_domain2, testData.sorted_domain2, testData.sorted_domain2, ""
+	Click text:"Domains", SearchRectangle:tabsAreaSR
+	Click text:"New Domain", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	waitFor ORNInterval.medium, text:"Domain Details"
+	DomainsUtil.createDomain testData.sorted_domain3, testData.sorted_domain3, testData.sorted_domain3, ""
+
+	// Set Pre-requisties for the test. Create domain and child domain
+	DomainsUtil.openNewDomainPage
+	WaitFor ORNInterval.medium, text :"Domain Details"
+	DomainsUtil.createDomain testData.domain_feature_test, testData.domain_feature_test, testData.domain_feature_test, testData.parent_domain
+	Click text:"Users",SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter "USERNAME", "Contains", userMaintainerDomain.username
+	click text:"Edit",SearchRectangle:ORNScreen.scale(.45,.20,1,1)
+	click text:"Maintainer Domain"
+	click ImageLocation(text:Domains,SearchRectangle:ORNScreen.scale(0,.25,.5,1))+(400,0)
+	TypeText testData.parent_domain,returnkey
+	click text:"Update User"
+	Click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	DskBrowser.selectAddressandEnterURL banduURL
+	BanduUtil.banduLogin userMaintainerDomain.username, userMaintainerDomain.password
+	WaitFor ORNInterval.medium, image: "Bandu/Dashboard/Label_DashboardWelcomeMessage"
+
+	log "Scenario 01: Navigating to Features tab and verifying Feature Administration page is displayed"
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	waitFor ORNInterval.medium, text:"Feature Administration", SearchRectangle:ORNScreen.scale(0,.03,1,.2)
+	assert that ImageFound(text:testData.featureIndex, SearchRectangle:ORNScreen.scale(0,0,.5,.5)) 
+	CaptureScreen "Scenario01_Features_Tab"
+
+	log "Scenario 08: Navigating to New Features screen and validating all fields are present"
+	Click text:"New Feature", SearchRectangle:ORNScreen.scale(.7,0,1,.3), WaitFor:ORNInterval.medium
+	WaitFor ORNInterval.medium, text:"Key Name", SearchRectangle:searchArea
+	set fieldLables to testData.fieldsValue
+	repeat with each item of fieldLables
+		if it equals "Toggle type"
+			TypeText pageDown
+		end if
+		if it equals "Save"
+			assert that ImageFound("Button_Save")
+		else
+			assert that ImageFound(text:it,SearchRectangle: searchArea)
+		end if
+	end repeat
+	TypeText pageUp
+	CaptureScreen "Scenario08_Feature_Fields_Validation"
+
+	log "Scenario 09: Creating a new feature"
+	FeaturesUtil.createFeature testData.feature_name, testData.feature_name, testData.feature_name, testData.feature_name
+	assert that ImageFound(ORNInterval.medium, text:testData.featureCreation, SearchRectangle:tabsAreaSR)
+	CaptureScreen "Scenario09_Feature_Created"
+
+	log "Scenario 10: Navigate to Users tab and click delete user, who is owner of created feature. Verify user is not removed and error message"
+	Click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	DskBrowser.selectAddressandEnterURL banduURL
+	BanduUtil.banduLogin userAdmin.username, userAdmin.password
+	WaitFor ORNInterval.medium, image: "Bandu/Dashboard/Label_DashboardWelcomeMessage"
+	Click text:"Users",SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter "USERNAME", "Contains", userMaintainerDomain.username
+	Click "Bandu/Domain_Migration_Filter"
+	click text:"Delete",SearchRectangle:ORNScreen.scale(.45,.20,1,1)
+	assert that ImageFound(ORNInterval.medium,text:testData.featureDelPopup,SearchRectangle:ORNScreen.scale(.3,0,.8,.3))
+	click "Button_OK"
+	assert that ImageFound(ORNInterval.medium, text:testData.feature_owner_deletion, SearchRectangle:tabsAreaSR)
+	BanduUtil.applyFilter "USERNAME", "Contains", userMaintainerDomain.username
+	Click "Bandu/Domain_Migration_Filter"
+	assert that ImageFound(ORNInterval.medium,text:userMaintainerDomain.username,SearchRectangle:ORNScreen.scale(0,.20,0.25,0.30))
+	CaptureScreen "Scenario10_Feature_Owner_Should_Not_Be_Deleted"
+
+	log "Scenario 11: Filter newly created domain and child domain. Verify parent domain is not displayed and child domain is displayed in the result"
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter "Key","Equals", testData.feature_name
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.8, 0.3)
+	TypeText pageDown
+	waitFor ORNInterval.medium, text:"Domains"
+	BanduUtil.enterFieldValue "Domains",  testData.parent_domain
+	assert that ImageFound(ORNInterval.long, text:"No results found", SearchRectangle:searchArea)
+	CaptureScreen "Scenario11A_Feature_Domains_Parent_Should_Not_Display"
+	Click text:"Domains"
+	TypeText returnKey
+	TypeText testData.domain_feature_test
+	assert that ImageFound(ORNInterval.medium, text:testData.domain_feature_test, SearchRectangle:searchArea)
+	CaptureScreen "Scenario11B_Feature_Domains_Child_Should_Be_Displayed"
+
+	log "Scenario 12: Associating domains"
+	TypeText pageDown
+	BanduUtil.enterFieldValue "Domains", testData.domain_feature_test
+	TypeText returnKey
+	click "Button_Add_Domain"
+	CaptureScreen "Scenario12_Feature_Domains_Associated"
+
+	log "Scenario 13: Adding domain details and verifying Enable Feature and Client Feature checks"
+	BanduUtil.enterFieldValue testData.reference_page, testData.feature_url
+	BanduUtil.enterFieldValue testData.reference_notes, testData.feature_url
+	click ImageLocation(text:"Enable Feature",SearchRectangle:ORNScreen.scale(0.1,0.3,.5,1))+(210,0)
+	assert that ImageFound(ORNInterval.medium, text:"Enables feature across all tenants!", SearchRectangle:searchArea)
+	CaptureScreen "Scenario13_Feature_Domain_Details"
+
+	log "Scenario 14: Project size to be displayed on selection of client field"
+	click ImageLocation(text:"Client Feature",SearchRectangle:ORNScreen.scale(0.1,0.3,.5,1))+(210,0)
+	assert that ImageFound(ORNInterval.medium, text:"Small", SearchRectangle: searchArea)
+	assert that ImageFound(text:"Medium", SearchRectangle: searchArea)
+	assert that ImageFound(text:"Large", SearchRectangle: searchArea)
+	CaptureScreen "Scenario14_Feature_Domain_Project_Size"
+
+	log "Scenario 15: Select Project size as small and verifying activated date"
+	FeaturesUtil.projectSize "Small"
+	set activatedDateSRArea to ((ImageRectangle(text:"Activated Date",SearchRectangle:ORNScreen.scale(0.1,0.3,.5,1)).topRight+(3,-10)), RemoteScreenSize())
+	assert that ImageFound(ORNInterval.medium, text:FeaturesUtil.getAssociatedDate("Small"),  DPI:"200", EnableAggressiveTextExtraction:"Yes", SearchRectangle:activatedDateSRArea)
+	CaptureScreen "Scenario15_Project_Size_Small"
+
+	log "Scenario 16: Select Project size as Medium and verifying activated date"
+	FeaturesUtil.projectSize "Medium"
+	assert that ImageFound(ORNInterval.medium, text:FeaturesUtil.getAssociatedDate("Medium"), DPI:"200", EnableAggressiveTextExtraction:"Yes", SearchRectangle:activatedDateSRArea)
+	CaptureScreen "Scenario16_Project_Size_Medium"
+
+	log "Scenario 17: Select Project size as Large and verifying activated date"
+	FeaturesUtil.projectSize "Large"
+	assert that ImageFound(ORNInterval.medium, text:FeaturesUtil.getAssociatedDate("Large"), DPI:"200", EnableAggressiveTextExtraction:"Yes", SearchRectangle:activatedDateSRArea)
+	CaptureScreen "Scenario17_Project_Size_Large"
+
+	log "Scenario 18: Domain gets associated successfully"
+	click "Button_Save"
+	assert that ImageFound(text:testData.featureDomainAssociation, SearchRectangle:searchArea)
+	TypeText pageDown
+	CaptureScreen "Scenario18_Domain_Associated_Successfully"
+
+	log "Scenario 19: Edit Domain and select Project size as On Hold and verifying activated date field shows TBD"
+	click text:"Domain_Feature_Test", SearchRectangle:ORNScreen.scale(0,.6,.3,1)
+	click ImageLocation(text:"On hold")+(210,0)
+	set activatedDateSRArea to ((ImageRectangle(text:"Activated Date",SearchRectangle:ORNScreen.scale(0,.6,.3,1)).topRight+(3,-10)), RemoteScreenSize())
+	assert that ImageFound(ORNInterval.medium, text:"TBD", SearchRectangle:activatedDateSRArea)
+	CaptureScreen "Scenario13_Verify_TBD_Is_Selected"
+	ScrollWheelDown 10
+	wait ORNInterval.small
+	click "Button_Save"
+	ScrollWheelDown 10
+
+	// Verifying is TBD is updated in table
+	set userRec to ImageRectangle(text:"Domain Feature Test",SearchRectangle:ORNScreen.scale(0,.6,.3,1)) + (0, -20, 0, 20) 
+	set the third item in userRec to ConnectionInfo().ScreenSize.x
+	assert that ImageFound(text:"TBD", SearchRectangle: userRec)
+	CaptureScreen "Scenario19_Verify_TBD_Is_Updated_In_Table"
+
+	log "Scenario 20: Tenant field displayed on clicking domain"
+	click text:testData.domain_feature_test, SearchRectangle:ORNScreen.scale(0,.6,.3,1)
+	assert that ImageFound(ORNInterval.medium, text:testData.featureTenant, SearchRectangle:searchArea)
+	CaptureScreen "Scenario20_Feature_Tenant_Field"
+
+	log "Scenario 21: Associating tenant and adding tenant details"
+	click ImageLocation(text:"Tenant", SearchRectangle:ORNScreen.scale(0,.7,.5,1))+(400,0)
+	TypeText testData.tenant_feature
+	waitFor ORNInterval.medium, text:testData.tenant_feature
+	TypeText returnKey
+	Click "Button_Add_Tenant"
+	CaptureScreen "Scenario21_Feature_Tenants"
+
+	//Adding tenant details
+	wait ORNInterval.small
+	click ImageLocation(text:"Enable Feature")
+	Click  image:"Button_Save", SearchRectangle:ORNScreen.scale(0,0.5,.4,1)
+	waitFor ORNInterval.medium, text:testData.domain_feature_test
+	typetext pageDown
+	assert that ImageFound(ORNInterval.medium, text:testData.tenant_feature)
+	assert that ImageFound(ORNInterval.medium, text:testData.tenant_feature_child)
+	CaptureScreen "Scenario21_Feature_Tenant_Details"
+
+	log "Scenario 22: Associating Batch tenants and adding batch tenant details"
+	click "Button_Batch_Tenants"
+	assert that ImageFound(ORNInterval.medium, text:testData.featureBatchTenant, SearchRectangle:searchArea)
+	CaptureScreen "Scenario22_Feature_Batch_Tenants"
+
+	//Batch tenant details
+	click ImageLocation(text:"Select value")+(210,20)
+	click ImageLocation(text:"Batch Tenants *", EnableAggressiveTextExtraction:"yes", SearchRectangle:ORNScreen.bottomHalf)+(400,0)
+	TypeText testData.batchTenant
+	click "Button_Save"
+	assert that ImageFound(ORNInterval.medium, text:testData.featureBatchSuccess, SearchRectangle:searchArea)
+	CaptureScreen "Scenario22_Feature_Batch_Tenant_Details"
+
+	log "Scenario 23: Deleting Tenant"
+	typetext pageDown
+	BanduUtil.selectDeleteFeature testData.tenant_feature
+	assert that ImageFound(ORNInterval.medium, text:testData.featureTenantDel, SearchRectangle:ORNScreen.scale(.3,0,.8,.3))
+	CaptureScreen "Scenario23_Tenant_Delete_Popup"
+
+	//Tenant deleted
+	click "Button_OK"
+	assert that ImageFound(ORNInterval.medium, text:testData.featureTenantRem, SearchRectangle:searchArea)
+	CaptureScreen "Scenario23_Tenant_delete"
+
+	log "Scenario 24: Updating feature"
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	WaitFor ORNInterval.medium, text:"Feature Administration"
+	BanduUtil.applyFilter "Key", "Equals", testData.feature_name
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.8, 0.3)
+	click text:"Display Name",SearchRectangle:ORNScreen.scale(0,0,.5,1)
+	TypeText controlKey & "a" 
+	TypeText "abc"
+	TypeText pageDown
+	waitFor ORNInterval.medium, text:"Cancel"
+	click "Button_Save"
+	assert that ImageFound(ORNInterval.medium, text:testData.featureUpdate,SearchRectangle: searchArea)
+	CaptureScreen "Scenario24_Feature_Update"
+
+	log "Scenario 25: Updating feature domain"
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	WaitFor ORNInterval.medium, text:"Feature Administration"
+	BanduUtil.applyFilter "Key", "Equals", testData.feature_name
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.8, 0.3)
+	TypeText pageDown
+	click text:testData.domain_feature_test, SearchRectangle: ORNScreen.scale(0,.6,.3,1)
+	click ImageLocation(text:"Reference Page",SearchRectangle:ORNScreen.scale(0,0,.5,1))
+	TypeText controlKey & "a" 
+	TypeText "http://abc.com",returnKey
+	waitFor ORNInterval.long, text:testData.featureUpdate
+	assert that ImageFound(ORNInterval.medium, text:testData.featureUpdate,SearchRectangle: searchArea)
+	CaptureScreen "Scenario25_Feature_Domain_Update"
+
+	log "Scenario 26: Deleting Domain"
+	TypeText pageDown
+	BanduUtil.selectDeleteFeature testData.domain_feature_test
+	assert that ImageFound(ORNInterval.medium, text:testData.featureDomainDel, SearchRectangle:ORNScreen.scale(.3,0,.8,.3))
+	CaptureScreen "Scenario26_Domain_Delete_Popup"
+
+	//Deleting domain
+	click "Button_OK"
+	assert that ImageFound(ORNInterval.medium, text:testData.featureDomainRem, SearchRectangle: searchArea)
+	CaptureScreen "Scenario26_Domain_Delete"
+
+	log "Scenario27: Create new feature (Feature B) and add domain to it. Verify feature is created successfully."
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	Click text:"New Feature", SearchRectangle:ORNScreen.scale(.7,0,1,.3), WaitFor:ORNInterval.medium
+	FeaturesUtil.createFeature testData.feature_B, testData.feature_B, testData.feature_B, testData.feature_B
+	assert that ImageFound(ORNInterval.medium, text:testData.featureCreation, SearchRectangle:tabsAreaSR)
+	CaptureScreen "Scenario27_Create_feature"
+
+	//Associating Domain
+	TypeText pageDown
+	BanduUtil.enterFieldValue "Domains", testData.domain_feature_test
+	TypeText returnKey
+	click "Button_Add_Domain"
+	BanduUtil.enterFieldValue testData.reference_page, testData.feature_url
+	BanduUtil.enterFieldValue testData.reference_notes, testData.feature_url
+	click ImageLocation(text:"Enable Feature")+(210,0)
+	assert that ImageFound(ORNInterval.medium, text:"Enables feature across all tenants!", SearchRectangle:searchArea)
+	click ImageLocation(text:"Client Feature")+(210,0)
+	assert that ImageFound(ORNInterval.medium, text:"Enables access across all tenants in feature manager!", SearchRectangle:searchArea)
+	FeaturesUtil.projectSize "Small"
+	click "Button_Save"
+	assert that ImageFound(text:testData.featureDomainAssociation, SearchRectangle:searchArea)
+	CaptureScreen "Scenario27_Domain_Associated_Successfully"
+
+	log "Scenario28: Filter features based on Key, Name, Description, Owners, Domain, GA Date, Activated Date, Created At and verify each filter results are displayed accordingly. Verify Search status displayed with current filters."
+	TypeText pageUp
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	BanduUtil.applyFilter "Key", "Equals", testData.feature_B
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Key equals " & testData.feature_B,SearchRectangle: filterSRArea)
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.9, 0.3)
+	Wait ORNInterval.small
+	BanduUtil.assertFieldValues "Bandu/Features_New-Edit/Label_KeyName_HotSpot", testData.feature_B
+	CaptureScreen "Scenario28_Filter_Feature_By_key"
+
+	//Filter feature based on name
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	BanduUtil.applyFilter "Name", "Equals", testData.feature_B
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Name equals " & testData.feature_B,SearchRectangle: filterSRArea)
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.9, 0.3)
+	Wait ORNInterval.small
+	BanduUtil.assertFieldValues "Bandu/Features_New-Edit/Label_DisplayName_HotSpot", testData.feature_B
+	CaptureScreen "Scenario28_Filter_Feature_By_Name"
+
+	//Filter feature based on description
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	BanduUtil.applyFilter "Description", "Contains", testData.feature_B
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Description contains " & testData.feature_B,SearchRectangle: filterSRArea)
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.9, 0.3)
+	Wait ORNInterval.small
+	BanduUtil.assertFieldValues "Bandu/Features_New-Edit/Label_EnterFeatureDescription_HotSpot", testData.feature_B
+	CaptureScreen "Scenario28_Filter_Feature_By_Description"
+
+	//Filter feature based on owners
+	TypeText pageUp
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	BanduUtil.applyFilter "Owners", "Equals", userAdmin.username
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Owners equals " & userAdmin.username,SearchRectangle: filterSRArea)
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.9, 0.3)
+	Wait ORNInterval.small
+	BanduUtil.assertFieldValues "Bandu/Features_New-Edit/Label_FeatureOwners_HotSpot", userAdmin.username
+	CaptureScreen "Scenario28_Filter_Feature_By_Owner"
+
+	//Filter feature based on domains
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	BanduUtil.applyFilter "Domain", "Contains", testData.domain_feature_test
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Domain equals " & testData.domain_feature_test,SearchRectangle: filterSRArea)
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.9, 0.3)
+	TypeText pageDown
+	assert that ImageFound(ORNInterval.medium, text:testData.domain_feature_test,SearchRectangle:ORNScreen.scale(0, 0.65, 0.15, 0.8))
+	CaptureScreen "Scenario28_Filter_Feature_By_Domain"
+
+	//Filter feature based on GA Date
+	TypeText pageUp
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	set GADateRec to imageRectangle(text:"GA DATE", SearchRectangle:filterSRArea)+(-10, 0, 20, 40)
+	click text:"From", SearchRectangle:GADateRec
+	TypeText today, returnKey
+	Wait ORNInterval.small
+	Click Image:"Bandu/Features/Button_Filter", SearchRectangle:filterSRArea, WaitFor:ORNInterval.medium
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Ga date greater or equal to " & today,SearchRectangle: filterSRArea)
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.9, 0.3)
+	TypeText pageDown
+	set GADateRec to imageRectangle(text:"GA DATE", SearchRectangle:ORNScreen.scale(0.4, 0.65, 0.5, 0.8))+(-10, 0, 40, 50)
+	assert that ImageFound(ORNInterval.medium, text:today, SearchRectangle:GADateRec)
+	CaptureScreen "Scenario28_Filter_Feature_By_GA_Date"
+
+	//Filter feature based on Activated date
+	TypeText pageUp
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	set ActivatedDateRec to imageRectangle(text:"ACTIVATED DATE", SearchRectangle:filterSRArea)+(-10, 0, 20, 40)
+	click text:"From", SearchRectangle:ActivatedDateRec
+	TypeText today + 30 days, returnKey
+	Wait ORNInterval.small
+	Click Image:"Bandu/Features/Button_Filter", SearchRectangle:filterSRArea, WaitFor:ORNInterval.medium
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Activated date greater or equal to" ,SearchRectangle: filterSRArea)
+	click text:"Edit", SearchRectangle:ORNScreen.scale(0.7, 0.2, 0.9, 0.3)
+	TypeText pageDown
+	set ActivatedDateRec to imageRectangle(text:"ACTIVATED DATE", SearchRectangle:ORNScreen.scale(0.5, 0.65, 0.6, 0.8))+(-10, 0, 40, 50)
+	assert that ImageFound(ORNInterval.medium, text:today + 30 days, SearchRectangle:ActivatedDateRec)
+	CaptureScreen "Scenario28_Filter_Feature_By_Activated_Date"
+
+	//Filter feature based on date of creation
+	TypeText pageUp
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	set CreatedAtRec to imageRectangle(text:"CREATED AT", SearchRectangle:filterSRArea)+(-10, 0, 20, 40)
+	click text:"From", SearchRectangle:CreatedAtRec
+	TypeText today, returnKey
+	Wait ORNInterval.small
+	Click Image:"Bandu/Features/Button_Filter", SearchRectangle:filterSRArea, WaitFor:ORNInterval.medium
+	assert that ImageFound(ORNInterval.medium, text :"Search Status:",SearchRectangle: filterSRArea)
+	assert that ImageFound(ORNInterval.medium, text:"Created at greater or equal to" ,SearchRectangle: filterSRArea)
+	set CreatedAtRec to imageRectangle(text:"Created Date", SearchRectangle:ORNScreen.scale(0.65, .2, 0.75, .25)) + (-30, 10, 40, 40)
+	assert that ImageFound(ORNInterval.medium, text:today, SearchRectangle:CreatedAtRec)
+	CaptureScreen "Scenario28_Filter_Feature_By_CreationDate"
+	TypeText pageUp
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	BanduUtil.selectDeleteFeature testData.feature_B
+	click "Button_OK"
+	CaptureScreen "Scenario28_Filter_Feature_By_Different_Fields"
+
+	log "Scenario 29: Checking Client Viewable value of the feature created"
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	BanduUtil.applyFilter "Key","Equals", testData.feature_name
+	assert that ImageFound(ORNInterval.medium, text:"YES",DPI:"20", EnhanceLocalContrast:"Yes", EnableAggressiveTextExtraction:"Yes", SearchRectangle:BanduUtil.getColumnSrchArea("Client Viewable"))
+	CaptureScreen "Scenario 29: Checking_Client_Viewable_value"
+
+	log "Scenario 34: Deleting Feature"
+	BanduUtil.selectDeleteFeature "abc"
+	assert that ImageFound(ORNInterval.medium,text:testData.featureDelPopup,SearchRectangle:ORNScreen.scale(.3,0,.8,.3))
+	CaptureScreen "Scenario30_Feature_Delete_Popup"
+
+	//Feature deleted
+	click "Button_OK"
+	WaitFor ORNInterval.medium, text:"Feature Administration"
+	assert that ImageFound(ORNInterval.medium, text:testData.featureDelete,SearchRectangle: searchArea)
+	CaptureScreen "Scenario34_Feature_Delete"
+
+	log "Scenario 35: Verify in Find enabled features page all fields are displayed"
+	Click text:"Features",SearchRectangle: tabsAreaSR
+	WaitFor ORNInterval.small, text:"Feature Administration"
+	WaitFor ORNInterval.small, text :"Feature Administration",SearchRectangle: tabsAreaSR
+	click "Bandu/Features/Button_FindEnabledFeatures"
+	assert that ImageFound(text:"Feature", SearchRectangle: userQueryFieldArea)
+	assert that ImageFound(text:"Application", SearchRectangle: userQueryFieldArea)
+	assert that ImageFound(text:"Tenant", SearchRectangle: userQueryFieldArea)
+	assert that ImageFound(text:"User", SearchRectangle: userQueryFieldArea)
+	assert that ImageFound(text:"Role", SearchRectangle: userQueryFieldArea)
+	CaptureScreen "Scenario35_UserQueryFields"
+
+	log "Scenario 36: Verify application search results are alphabetically sorted "
+	put (testData.sorted_domain1,testData.sorted_domain2,testData.sorted_domain3) into dummyApplicationList
+	Click text:"Application", SearchRectangle: userQueryFieldArea
+	TypeText returnKey
+	set applications to readtext(ORNScreen.scale(.2,0.36,0.35,0.44))
+	split applications by newline
+	assert that applications equals dummyApplicationList
+	CaptureScreen "Scenario36_Applications_Sorted_Alphabetically"
+	// Setting back pre-req
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.domain_feature_test
+	Click "Button_OK"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.parent_domain
+	Click "Button_OK"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.sorted_domain1
+	Click "Button_OK"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.sorted_domain2
+	Click "Button_OK"
+	Click text:"Domains",SearchRectangle:tabsAreaSR
+	DomainsUtil.deleteDomain testData.sorted_domain3
+	Click "Button_OK"
+	Click text:"Tenants",SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter "Key","Equals", testData.tenant_feature_child
+	Click text:"Delete"
+	Click "Button_OK"
+	Click text:"Tenants",SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter "Key","Equals", testData.tenant_feature
+	Click text:"Delete"
+	Click "Button_OK"
+	Click text:"Users",SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter "USERNAME", "Contains", userMaintainerDomain.username
+	Click "Bandu/Domain_Migration_Filter"
+	click text:"Edit",SearchRectangle:ORNScreen.scale(.45,.20,1,1)
+	click text:"Administrator"
+	click text:"Update User"
+	Click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3), WaitFor:ORNInterval.medium
+	ORNEnvironment.cleanup environment
+
+Catch exception
+	ORNEnvironment.handleException environment, exception
+end try

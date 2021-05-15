@@ -1,0 +1,85 @@
+{
+	"suts": [{
+		"name": "Windows-VM"
+
+	}],
+	"dev": {
+		"domain": "deveng",
+		"assertions": {
+			"userTxt":"Users",
+			"userDetailsTxt":"User Details",
+			"useNameTxt":"Username",
+			"maintainerCapTxt":"Maintainer Capability",
+			"tenantErrorMsgTxt":"Tenants can't be blank",
+			"selectTenantTxt":"Eggplant_test_tenant1",
+            		"selectTenantTxt2":"Eggplant_test_tenant2",
+			"userSuccessMsgTxt":"User was successfully created",
+			"maintainerDomtxt":"Maintainer Domain",
+			"domainErrorMsgTxt":"Domains can't be blank",
+			"selectDomainTxt":"ion_applications",
+			"userNameColTxt":"Username",
+			"createdAtColTxt":"Created At",
+			"updatedAtColTxt":"Updated At",
+			"administatorUserTxt":"Administrator",
+			"maintainerDomainTxt":"Maintainer Domain",
+			"userUpdatedMsgTxt":"User was successfully updated",
+			"powerChartTouchTxt":"PowerChart Touch",
+            		"noResultFoundTxt":"No results found",
+            		"tenantMaintainerUser":"DEVENG System Account",
+			"domains":"Domains",
+            		"tenants":"Tenants",
+			"newDomain":"New Domain",
+			"newUser":"New User",
+			"administrator":"Administrator"
+		},
+		"url": {
+			"loginBandu": "https://bandu-test.devcernerpowerchart.com/admin"
+		},
+		"users": [{
+			"userName": "ac047014",
+			"password": "",
+			"userName1":"sk067492",
+			"password1":" "
+		}]
+	},
+
+	"staging": {
+		"domain": "stgeng",
+		"assertions": {
+			"userTxt":"Users",
+			"userDetailsTxt":"User Details",
+			"useNameTxt":"Username",
+			"maintainerCapTxt":"Maintainer Capability",
+			"tenantErrorMsgTxt":"Tenants can't be blank",
+			"selectTenantTxt":"Eggplant_test_tenant1",
+           		"selectTenantTxt2":"Eggplant_test_tenant2",
+			"userSuccessMsgTxt":"User was successfully created",
+			"maintainerDomtxt":"Maintainer Domain",
+			"domainErrorMsgTxt":"Domains can't be blank",
+			"selectDomainTxt":"ion_applications",
+			"userNameColTxt":"Username",
+			"createdAtColTxt":"Created At",
+			"updatedAtColTxt":"Updated At",
+			"administatorUserTxt":"Administrator",
+			"maintainerDomainTxt":"Maintainer Domain",
+			"userUpdatedMsgTxt":"User was successfully updated",
+			"powerChartTouchTxt":"PowerChart Touch",
+			"noResultFoundTxt":"No results found",
+            		"tenantMaintainerUser":"DEVENG System Account",
+			"domains":"Domains",
+            		"tenants":"Tenants",
+			"newDomain":"New Domain",
+			"newUser":"New User",
+			"administrator":"Administrator"
+		},
+		"url": {
+			"loginBandu": " https://bandu.sandboxcernerpowerchart.net/"
+		},
+		"users": [{
+			"userName": "ac047014",
+			"password": " ",
+			"userName1":"sk067492",
+			"password1":""			
+		}]
+	}
+}

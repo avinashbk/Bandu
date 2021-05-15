@@ -1,0 +1,51 @@
+# Required data for domain creation - key,name and description
+# option fields can be removed , if not neccessary
+# Provide list of tenant keys to add app Id's to authz/authorized_apps definition 
+domain:
+  key: 'domain_key_One'
+  
+domain_configuration_item:
+  item1:
+    definition_key: 'definition_key_One'
+    definition_description: 'definition_One'
+    definition_type: 'string'
+    item_value: '123'
+  
+  item2:
+    definition_key: 'definition_key_Two'
+    definition_description: 'definition_Two'
+    definition_type: 'integer'
+    item_value: 123
+   
+feature_details:
+  feature1:
+    key: 'feature_key_One'
+    name: 'feature_Name_One'
+    description: 'feature description'
+    owners:
+      - kb047140
+      - user2
+      - user3
+    team_name: 'team name'
+    technical_description: 'tech description'
+    package_req: false
+    build_req: false
+    toggle_type: 'YES'
+    enable_feature: true
+    client_toggle: false
+
+  feature2:  
+    key: 'feature_key_Two'
+    name: 'feature_Name_Two'
+    description: 'feature description2'
+    owners:
+      - kb047140
+      - user2
+      - user3
+    team_name: 'team name'
+    technical_description: 'tech description'
+    package_req: false
+    build_req: false
+    toggle_type: 'NO'
+    enable_feature: false
+    client_toggle: false

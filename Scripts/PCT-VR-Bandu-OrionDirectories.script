@@ -1,0 +1,277 @@
+﻿(**
+	Test Case: PCT-VR-Bandu-OrionDirectories
+      	RQM Test Case ID: 107240
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+
+set defaultEnvironment to "dev" // Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("PCT-VR-Bandu-OrionDirectories.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+set maxWaitTime to global maxWaitTime
+
+try
+	// Setting variables
+	set banduURL to environment.endpoint
+	set user to environment.users
+	set testData to environment.assertions
+	set searchArea to (0, .10, 1, .3)
+	
+	// Open the harness url and sign in
+	DskUtilities.dismissRulesOfRoad
+	DskBrowser.launchChromeIncognitoMaxURL banduURL
+	BanduUtil.banduLogin user.username, user.password
+	WaitFor ORNInterval.medium, text :"Logout",SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	
+	// Create Directory Type and Directory
+	DirectoriesUtil.createDirectoryType testData.directoryTypeKey, testData.directoryTypeKey
+	DirectoriesUtil.createDirectory testData.directoryTypeKey, testData.directoryTypeKeyForSorting, testData.directoryValueForSorting
+	
+	Log "Scenario 01: Validate Maintainer Directory Type role and Directory Types fields are present in the user creation page."
+	click text:"Users", SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	click text:"New User", SearchRectangle:ORNScreen.scale(.89,.10,1,.20),waitfor:maxWaitTime
+	assert that ImageFound(maxWaitTime,text:"Maintainer Directory Type",DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	assert that ImageFound(maxWaitTime,text:"Directory Types")
+	click FoundImageLocation()
+	typetext testData.directoryTypeKey
+	assert that ImageFound(maxWaitTime,text:testData.directoryTypeKey, DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	CaptureScreen "Scenario01_Verify_DirectoryType_Role_And_fields"
+	
+	Log "Scenario 02: Validate Directory types can't be blank message is displayed."
+	click text:"Username", Searchrectangle:ORNScreen.scale(.01,.20,.07,.55),waitfor:maxWaitTime
+	typetext testData.dmrUser
+	assert that ImageFound(maxWaitTime,text:"Maintainer Directory Type",DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	click FoundImageLocation()
+	click "Button_Create_User/CreateUser"
+	assert that  ImageFound(Image: "Bandu/Directories/Directorytypescantbeblank",SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	CaptureScreen "Scenario02_Validate_Directory_Type_field"
+	
+	Log "Scenario 03: Verify the User is created with the Maintainer Directory Type Role."
+	click text:"Users", SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	waitfor maxWaitTime, text:"New User"
+	click text:"New User", SearchRectangle:ORNScreen.scale(.89,.10,1,.20),waitfor:maxWaitTime
+	click text:"Username", Searchrectangle:ORNScreen.scale(.01,.20,.07,.55),waitfor:maxWaitTime
+	typetext testData.dmrUser
+	assert that ImageFound(maxWaitTime,text:"Maintainer Directory Type",DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	click FoundImageLocation()
+	assert that ImageFound(maxWaitTime,text:"Directory Types")
+	click FoundImageLocation()
+	typetext testData.directoryTypeKey, returnkey
+	assert that ImageFound(maxWaitTime,text:testData.directoryTypeKey, DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	click "Button_Create_User/CreateUser"
+	assert that ImageFound(maxWaitTime,text:"User was successfully created",SearchRectangle: searchArea)
+	CaptureScreen "Scenario03_User_Was_Successfully_Created_Msg"
+	
+	Log "Scenario 04: Login with Maintainer Directory Type user Verify user is logged into the Application."
+	
+	// Update a user as a maintainer
+	click text:"Users", SearchRectangle:ORNScreen.scale(.0, .06,1, .10),waitfor:maxWaitTime
+	waitfor maxWaitTime, text:"New User"
+	BanduUtil.applyFilter "USERNAME","Equals",user.username1
+	click text:"Edit", SearchRectangle:ORNScreen.scale(.60, 1, 1, .13),waitfor:maxWaitTime
+	assert that ImageFound(maxWaitTime,text:"Maintainer Directory Type",DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	click FoundImageLocation()
+	assert that ImageFound(maxWaitTime,text:"Directory Types")
+	click FoundImageLocation()
+	typetext testData.directoryTypeKey, returnkey
+	assert that ImageFound(maxWaitTime,text:testData.directoryTypeKey,DPI:"200", EnableAggressiveTextExtraction:"Yes", EnhanceLocalContrast:"Yes")
+	click "Button_Create_User/UpdateUser"
+	assert that ImageFound(maxWaitTime,text:"User was successfully updated",SearchRectangle: searchArea)
+	
+	// Logout of the Bandu and login with Maintainer Directory Type User.
+	click text:"Logout", SearchRectangle:ORNScreen.scale(.92,.07,1,.20),waitfor:maxWaitTime
+	DskBrowser.launchChromeIncognitoMaxURL banduURL
+	BanduUtil.banduLogin user.username1, user.password1
+	CaptureScreen "Scenario04_Maintainer_Login"
+	
+	Log "Scenario 05: Navigate to the Directories, Verify the Directories page is displayed, and column headers Id, Key, Description and Value are sortable."
+	DirectoriesUtil.navigateToDirectories
+	assert that  ImageFound(Text:testData.directoryTypeKeyForSorting, DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	
+	// Sort on Id
+	Click text:"Id",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	wait 4 seconds // Wait for the records to sort in the table.
+	assert that not ImageFound(text:testData.directoryTypeKeyForSorting,DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	
+	// Sort on key
+	Click text:"Key",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	wait 4 seconds // Wait for the records to sort in the table.
+	assert that not ImageFound(text:testData.directoryTypeKeyForSorting,DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	
+	// Sort on Description
+	Click text:"Description",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	wait 4 seconds // Wait for the records to sort in the table.
+	assert that not ImageFound(text:testData.directoryTypeDescForSorting, DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	
+	// Sort on Value
+	Click text:"Value",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	wait 4
+	assert that not ImageFound(text:testData.directoryTypeKeyForSorting,DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	CaptureScreen "Scenario05_Table_sorted"
+	
+	// sorting back to the original state
+	Click text:"Id",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	
+	Log "Scenario 06: Validate mandatory messages are displayed for Value, Description and Directory type fields."
+	DirectoriesUtil.navigateToDirectories
+	Click text:"New Directory", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	
+	// No Directory Type provided
+	Click text:"Create Directory",SearchRectangle:ORNScreen.scale(0,.4,.5,1), waitfor:ORNInterval.medium
+	assert that  ImageFound(Image: "Bandu/Directories/Descriptioncantbeblank",SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	assert that  ImageFound(Image: "Bandu/Directories/Directorytypecantbeblank",SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	assert that  ImageFound(Text:testData.directoryValueBlankMsg,SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	CaptureScreen "Scenario06_Validate_messages_for_fields"
+	
+	Log "Scenario 07: Select the Directory type field and enter just 2 characters and verify the directory types are displayed."
+	DirectoriesUtil.navigateToDirectories
+	Click text:"New Directory", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	BanduUtil.enterFieldValue "Directory Type", "di"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.directoryTypeKey, SearchRectangle: ORNScreen.scale(0,.2,.5,.8))
+	CaptureScreen "Scenario07_Search_directory_types"
+	
+	Log "Scenario 08: Validate error message is displayed on entering wrong data in Value field."
+	
+	// Invalid JSON provided for value
+	DirectoriesUtil.navigateToDirectories
+	Click text:"New Directory", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	BanduUtil.enterFieldValue "Directory Type", testData.directoryTypeKey
+	wait 4 seconds // Required to retrieve the directory-types
+	TypeText returnKey
+	wait 4 seconds // Required to load the selected directory-type.
+	BanduUtil.enterFieldValue "Value", "{key:value"
+	BanduUtil.enterFieldValue "Description", "Eggplant_AUT_Directory"
+	Click text:"Create Directory",SearchRectangle:ORNScreen.scale(0,.4,.5,1), waitfor:ORNInterval.medium
+	assert that  ImageFound(Image: "Bandu/Directories/ValueInvalidJSONformat",SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	
+	// Missing Key In JSON
+	DirectoriesUtil.navigateToDirectories
+	Click text:"New Directory", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	BanduUtil.enterFieldValue "Directory Type", testData.directoryTypeKey
+	wait 4 seconds // Required to retrieve the directory-types.
+	TypeText returnKey
+	wait 4 seconds // Required to load the selected directory-type.
+	BanduUtil.enterFieldValue "Value", testData.directoryMissingKey
+	BanduUtil.enterFieldValue "Description", "Eggplant_AUT_Directory"
+	Click text:"Create Directory",SearchRectangle:ORNScreen.scale(0,.4,.5,1), waitfor:ORNInterval.medium
+	assert that  ImageFound(Image: "Bandu/Directories/ValueMissingkeyinJSON",SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	CaptureScreen "Scenario08_Validate_value_field"
+	
+	Log "Scenario 09: Validate error message is displayed on entering the same key value which is already taken."
+	// Duplicate Key In JSON
+	DirectoriesUtil.navigateToDirectories
+	Click text:"New Directory", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	BanduUtil.enterFieldValue "Directory Type", testData.directoryTypeKey
+	wait 4 seconds // Required to retrieve the directory-types.
+	TypeText returnKey
+	wait 4 seconds // Required to load the selected directory-type.
+	BanduUtil.enterFieldValue "Value", testData.directoryDuplicateKey
+	BanduUtil.enterFieldValue "Description", "Eggplant_AUT_Directory"
+	Click text:"Create Directory",SearchRectangle:ORNScreen.scale(0,.4,.5,1), waitfor:ORNInterval.medium
+	assert that  ImageFound(Image: "Bandu/Directories/Keyhasalreadybeentaken",SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	CaptureScreen "Scenario09_Key_already_taken"
+	
+	Log "Scenario Scenario 10: Validate success message is displayed on creation of Directory."
+	DirectoriesUtil.createDirectory testData.directoryTypeKey, testData.directoryDescription, testData.directoryValue
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.directoryCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .8))
+	CaptureScreen "Scenario10_Directory_created"
+	
+	Log "Scenario 11: On Editing a Directory success message is displayed."
+	DirectoriesUtil.editDirectory testData.directoryTypeKey, testData.directoryKey, " edited", testData.directoryValue
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.directoryUpdatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .8))
+	CaptureScreen "Scenario11_Directory_updated"
+	
+	Log "Scenario 12: Validate user is able to delete the Directory."
+	DirectoriesUtil.deleteDirectory testData.directoryTypeKey, testData.directoryKey
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.directoryDestroyedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .8))
+	CaptureScreen "Scenario12_Directory_deleted"
+	
+	Log "Scenario 13: Validate user is able to filter the directories in the table."
+	DirectoriesUtil.navigateToDirectories
+	DirectoriesUtil.applyFilterOnDirectory testData.directoryTypeKey, testData.directoryTypeKeyForSorting
+	assert that  ImageFound(Text:testData.directoryTypeKeyForSorting, SearchRectangle: ORNScreen.scale(.1, .18,.4, .3))
+	CaptureScreen "Scenario13_Filter_Directory"
+	
+	Log "Scenario 14: Navigate to the Directory Types, Verify the Directory Types page is displayed, and column headers Id, Key and Description are sortable."
+	DirectoriesUtil.createDirectoryType testData.directoryTypeKeyForSorting, testData.directoryTypeDescForSorting
+	DirectoriesUtil.navigateToDirectoryTypes
+	assert that  ImageFound(Text: testData.directoryTypeKeyForSorting, SearchRectangle: ORNScreen.scale(.0, .18, 1, .3))
+	
+	// Sort on Id
+	Click text:"Id", SearchRectangle:ORNScreen.scale(.0, .18, .3, .22), WaitFor:ORNInterval.short
+	wait 4 seconds // Wait for the records to sort in the table.
+	assert that not ImageFound(text: testData.directoryTypeKeyForSorting, SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	
+	// Sort on key
+	Click text:"Key", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	wait 4 seconds // Wait for the records to sort in the table.
+	assert that not ImageFound(text: testData.directoryTypeKeyForSorting,SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	
+	// Sort on Description
+	Click text:"Description", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	wait 4 seconds // Wait for the records to sort in the table.
+	assert that not ImageFound(text:testData.directoryTypeDescForSorting,DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	CaptureScreen "Scenario14_DirectoryType_Table_sorted"
+	
+	// sorting back to the original state
+	Click text:"Id",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	
+	Log "Scenario 15: Validate mandatory messages are displayed for Key and Description."
+	DirectoriesUtil.navigateToDirectoryTypes
+	Click text:"New Directory Type", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	Click text:"Create Directory type",SearchRectangle:ORNScreen.scale(0,.4,.5,1), waitfor:ORNInterval.short
+	assert that  ImageFound(Text:testData.directoryTypeKeyBlankMsg,SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	assert that  ImageFound(Image: "Bandu/Directories/Descriptioncantbeblank",SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	DirectoriesUtil.createDirectoryType testData.directoryTypeKeyForSorting, testData.directoryTypeKeyForSorting
+	assert that  ImageFound(Text:testData.directoryTypeDuplicateKeyMsg,SearchRectangle: ORNScreen.scale(0, .2, .75, .8))
+	CaptureScreen "Scenario15_DirectoryType_messages"
+	
+	Log "Scenario 16: Validate success message is displayed on creation of Directory Type."
+	DirectoriesUtil.createDirectoryType testData.directoryTypeKey1, testData.directoryTypeKey1
+	assert that ImageFound(waitfor:ORNInterval.medium, Image: "Bandu/Directories/DirectoryTypeCreate",SearchRectangle: ORNScreen.scale(0, .1, .75, .8))
+	CaptureScreen "Scenario16_DirectoryType_created"
+	
+	Log "Scenario 17: Validate user is able to the edit the Directory type."
+	DirectoriesUtil.editDirectoryType testData.directoryTypeKey1, " edited"
+	assert that ImageFound(waitfor:ORNInterval.medium, Image: "Bandu/Directories/DirectoryTypeUpdate",SearchRectangle: ORNScreen.scale(0, .1, .75, .8))
+	CaptureScreen "Scenario17_DirectoryType_edited"
+	
+	Log "Scenario 18: Validate user is able to delete the Directory type."
+	DirectoriesUtil.deleteDirectoryType testData.directoryTypeKey1
+	assert that ImageFound(waitfor:ORNInterval.medium, Image: "Bandu/Directories/DirectoryTypeDelete",SearchRectangle: ORNScreen.scale(0, .1, .75, .8))
+	CaptureScreen "Scenario18_DirectoryType_deleted"
+	
+	Log "Scenario 19: Validate user is able to filter the Directory type in the table."
+	DirectoriesUtil.navigateToDirectoryTypes
+	BanduUtil.applyFilter "Key", "Equals", testData.directoryTypeKeyForSorting
+	assert that  ImageFound(Text: testData.directoryTypeKeyForSorting,SearchRectangle: ORNScreen.scale(0, .18,.4, .3))
+	CaptureScreen "Scenario19_FilterDirectoryType"
+	
+	Log "Scenario 20: Logout"
+	click text:"Logout", SearchRectangle:ORNScreen.scale(.92,.07,1,.20),waitfor:maxWaitTime
+	assert that ImageFound(maxWaitTime,text:"LOG OUT",CaseSensitive:"True",SearchRectangle: searchArea)
+	CaptureScreen "Scenario20_Logout"
+	
+	// re-setting the prereq
+	DskBrowser.launchChromeIncognitoMaxURL banduURL
+	BanduUtil.banduLogin user.username, user.password
+	BanduUtil.changeUserRole user.username1, "Administrator"
+	click text:"Users",SearchRectangle:ORNScreen.scale(.0, .06,1, .10)
+	BanduUtil.deleteUser testData.dmrUser
+	
+	// Delete directory
+	DirectoriesUtil.deleteDirectory testData.directoryTypeKey, testData.directoryTypeKeyForSorting
+	
+	// Delete Directory Type
+	DirectoriesUtil.deleteDirectoryType testData.directoryTypeKey
+	DirectoriesUtil.deleteDirectoryType testData.directoryTypeKeyForSorting
+	click text:"Logout", SearchRectangle:ORNScreen.scale(.92,.07,1,.20),waitfor:maxWaitTime
+	ORNEnvironment.cleanup environment
+Catch exception
+	ORNEnvironment.handleException environment, exception
+end try
+

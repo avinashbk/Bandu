@@ -1,0 +1,100 @@
+{
+	"suts":[
+	   {
+		  "name":"Windows-VM",
+		  "formFactor":"desktop"
+	   }
+	],
+	"dev":{
+	   "domain":"deveng",
+	   "assertions":{
+		  "parentDTxt":"Eggplant_Domain_Parent",
+		  "parentDChildTxt1":"Eggplant_Domain_child_1",
+		  "parentDChldTxt":"Eggplant_Domain_Child",
+		  "parentDSubChldTxt":"Eggplant_Domain_SubChild",
+		  "parentDChildTxtWithSign": "- Eggplant_Domain_Child_1",
+		  "updatedParentDSubChldTxt":"Updated_Eggplant_Domain_SubChild",
+		  "updateUserSuccessMsg": "User was successfully updated",
+		  "fieldsValues":[
+			 "Parent",
+			 "Key",
+			 "Name",
+			 "Description",
+			 "Icon",
+			 "Display Name",
+			 "Users/Emails",
+			 "Application IDs",
+			 "Path",
+			 "Create Domain",
+			 "Cancel"
+		  ],
+		  "domainCreMsgTxt":"Domain was successfully created",
+		  "domainUpdMsgTxt":"Domain was successfully updated.",
+		  "areYouSureText":"Are you sure ",
+		  "parentTxt":"PARENT",
+		  "keyTxt":"KEY",
+		  "applicationIDTxt":"APPLICATION ID",
+		  "domainHierTxt":"Eggplant_Domain",
+		  "domainDelMsgTxt":"Domain was successfully destroyed",
+		  "domainsNotFoundTxt":"No Domains found",
+		  "domainKeyChangeWarning":"Warning! Changing the domain key is a destructive action"
+	   },
+	   "users":[
+		  {
+			 "tag":"Associate User1",
+			 "username":"",
+			 "password":""
+		  },
+		  {
+			 "tag":"Associate User2",
+			 "username":"",
+			 "password":""
+		  }
+	   ],
+	   "endpoint":"https://bandu-test.devcernerpowerchart.com"
+	},
+	"staging":{
+		"domain":"stgeng",
+		"assertions":{
+		   "parentDTxt":"Eggplant_Domain_Parent",
+		   "parentDChldTxt":"Eggplant_Domain_Child",
+		   "parentDSubChldTxt":"Eggplant_Domain_SubChild",
+		   "updateUserSuccessMsg": "User was successfully updated",
+		   "fieldsValues":[
+			  "Parent",
+			  "Key",
+			  "Name",
+			  "Description",
+			  "Icon",
+			  "Display Name",
+			  "Users/Emails",
+			  "Application IDs",
+			  "Path",
+			  "Create Domain",
+			  "Cancel"
+		   ],
+		   "domainCreMsgTxt":"Domain was successfully created",
+		   "domainUpdMsgTxt":"Domain was successfully updated.",
+		   "areYouSureText":"Are you sure ",
+		   "parentTxt":"PARENT",
+		   "keyTxt":"KEY",
+		   "applicationIDTxt":"APPLICATION ID",
+		   "domainHierTxt":"Eggplant_Domain",
+		   "domainDelMsgTxt":"Domain was successfully destroyed",
+		   "domainsNotFoundTxt":"No Domains found"
+		},
+		"users":[
+			{
+			  "tag": "Associate User1",
+			  "username":"",
+			  "password":""
+			},
+			{
+			  "tag": "Associate User2",
+			  "username":"",
+			  "password":""
+			}
+		],
+		"endpoint":"https://bandu.sandboxcernerpowerchart.net/"
+	 }
+ }

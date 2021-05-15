@@ -1,0 +1,162 @@
+﻿(**
+	Test Case: PCT-VR-Bandu-AddTenant-BatchTenant
+	RQM Test Case ID: 648
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("PCT-VR-Bandu-AddTenant-BatchTenant.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+//Retrieve Orion global variables such as maxWaitTime (30 seconds) and remoteInterval (1.5 seconds)
+ORNGlobalSettings.apply
+Set tenantsData to JSONValue(file resourceFile).Tenants
+set systemAcccountData to JSONValue(file resourceFile).SystemAccountInfo
+
+set defaultWaitTime to ORNInterval.medium
+set user to "SVCBandu1"
+set password to "r&Rm&u$u^EHddfrL"
+
+try
+	// Open the harness url and sign in
+	DSKUtilities.dismissRulesOfRoad
+	DSKBrowser.launchChromeIncognitoMaxURL environment.endpoint
+	BanduUtil.banduLogin user, password
+	WaitFor 15, image: "Bandu/Dashboard/Label_DashboardWelcomeMessage" // waiting for dashboard page to load
+	
+	//Before Test Clean Up
+	Set cleanUpTenants to (systemAcccountData.Key, tenantsData.Tenant1.Key, tenantsData.Tenant2.Key, tenantsData.Tenant3.Key, tenantsData.NewTenant.Key, tenantsData.UpdatedTenant.Key)
+	BanduUtil.tenantCleanup cleanUpTenants
+	
+	Log "Scenario01: Navigating to New Tenant screen and validating all fields are present"
+	Click "Bandu/Header/Tab_Tenants"
+	Click "Bandu/Tenants/Button_NewTenant"
+	Click "Bandu/Tenants_New-Update/Button_CreateTenant"
+	Assert that imagefound("Bandu/Tenants_New-Update/Tab_AddTenant")
+	Assert that imagefound("Bandu/Tenants_New-Update/Tab_BatchTenant")
+	Assert that imagefound("Bandu/Tenants_New-Update/Label_KeyCantBeBlank")
+	Assert that imagefound("Bandu/Tenants_New-Update/Label_NameCantBeBlank")
+	Assert that imagefound("Bandu/Tenants_New-Update/Label_DescriptionCantBeBlank")
+	CaptureScreen (Name: "Scenario01-TenantRequiredFields")
+	
+	Log "Scenario02: Create a Tenant successfully"
+	Click "Bandu/Tenants_New-Update/Label_Key_HotSpot"
+	TypeText tenantsData.NewTenant.Key, TabKey
+	TypeText tabKey
+	TypeText tenantsData.NewTenant.Name, TabKey
+	TypeText tenantsData.NewTenant.Description, TabKey
+	Click "Bandu/Tenants_New-Update/Button_CreateTenant"
+	Assert that imagefound("Bandu/Tenants_Details/Label_TenantWasSuccessfullyCreated")
+	CaptureScreen (Name: "Scenario02-CreateTenant")
+	
+	Log "Scenario03: Edit a Tenant successfully"	
+	Click "Bandu/Tenants_Details/Button_EditTenant"
+	BanduUtil.assertFieldValues "Bandu/Tenants_New-Update/Label_Key_HotSpot", tenantsData.NewTenant.Key
+	BanduUtil.assertFieldValues "Bandu/Tenants_New-Update/Label_Name_HotSpot", tenantsData.NewTenant.Name
+	BanduUtil.assertFieldValues "Bandu/Tenants_New-Update/Label_Description_HotSpot", tenantsData.NewTenant.Description
+	Click "Bandu/Tenants_New-Update/Label_Key_HotSpot"
+	TypeText controlKey, "a"
+	TypeText tenantsData.UpdatedTenant.Key 
+	TypeText TabKey
+	TypeText TabKey
+	TypeText controlKey, "a"
+	TypeText tenantsData.UpdatedTenant.Name
+	TypeText TabKey
+	TypeText controlKey, "a"
+	TypeText tenantsData.UpdatedTenant.Description
+	TypeText TabKey
+	Click "Bandu/Tenants_New-Update/Button_UpdateTenant"
+	assert that ImageFound(defaultWaitTime, text:environment.assertions.tenantKeyChangeWarning, SearchRectangle:ORNScreen.scale(.3, 0, .8, .3))
+	Click "Bandu/Utilities/WarningMessages/Button_OK"
+	BanduUtil.assertFieldValues "Bandu/Tenants_Details/Label_KEY", tenantsData.UpdatedTenant.Key
+	BanduUtil.assertFieldValues "Bandu/Tenants_Details/Label_NAME", tenantsData.UpdatedTenant.Name
+	BanduUtil.assertFieldValues "Bandu/Tenants_Details/Label_DESCRIPTION", tenantsData.UpdatedTenant.Description
+	Assert that imagefound("Bandu/Tenants_Details/Label_TenantWasSuccessfullyUpdated")
+	CaptureScreen (Name: "Scenario03-EditTenant")
+	
+	Log "Scenario04: Delete the Tenant to be successfully"
+	Click "Bandu/Tenants_Details/Button_DeleteTenant"
+	Click "Bandu/Utilities/WarningMessages/Button_OK"
+	Assert that imagefound("Bandu/Tenants/Label_TenantWasSuccessfullyDestroyed")
+	CaptureScreen (Name: "Scenario04-DeleteTenant")
+	
+	Log "Scenario05: Create a Batch of Tenants successfully"
+	Click "Bandu/Tenants/Button_NewTenant"
+	Click "Bandu/Tenants_New-Update/Tab_BatchTenant"
+	Click "Bandu/Tenants_New-Update/Label_BatchTenants_HotSpot"
+	TypeText tenantsData.Tenant1.Key&","&&tenantsData.Tenant2.Key&","&&tenantsData.Tenant3.Key
+	Click "Bandu/Tenants_New-Update/Button_CreateBatchTenants"
+	Click (ImageName:"Bandu/Utilities/TableControls/FilterOptions/Label_Filter_Key_HotSpot", waitfor:10)
+	TypeText tenantsData.Tenant1.Key
+	Click "Bandu/Utilities/TableControls/FilterOptions/Button_Filter"
+	CaptureScreen (Name: "Scenario05-CreateBatchTenant")
+	
+	Log "Scenario06: Verify that a Batch Tenant Details disppear correctly and edit a Batch Tenant"
+	Click "Bandu/Utilities/TableControls/Link_Edit"
+	BanduUtil.assertFieldValues "Bandu/Tenants_New-Update/Label_Key_HotSpot", tenantsData.Tenant1.Key
+	BanduUtil.assertFieldValues "Bandu/Tenants_New-Update/Label_Type_HotSpot", "System Account"
+	BanduUtil.assertFieldValues "Bandu/Tenants_New-Update/Label_Name_HotSpot", "UNAVAILABLE"
+	BanduUtil.assertFieldValues "Bandu/Tenants_New-Update/Label_Description_HotSpot", "UNAVAILABLE"
+	CaptureScreen (Name: "Scenario06-BatchTenantDefaultValues")
+	
+	Log "Scenario07: Verify to Update Batch Tenant Successfully"
+	Click "Bandu/Tenants_New-Update/Label_Key_HotSpot"
+	TypeText controlKey, "a"
+	TypeText systemAcccountData.Key
+	TypeText TabKey, TabKey
+	TypeText controlKey, "a"
+	TypeText systemAcccountData.Name, TabKey
+	TypeText controlKey, "a"
+	TypeText systemAccountData.Description, TabKey
+	Click "Bandu/Tenants_New-Update/Button_UpdateTenant"
+	assert that ImageFound(defaultWaitTime, text:environment.assertions.tenantKeyChangeWarning,SearchRectangle:ORNScreen.scale(.3, 0, .8, .3))
+	Click "Bandu/Utilities/WarningMessages/Button_OK"
+	Assert that imagefound("Bandu/Tenants_Details/Label_TenantWasSuccessfullyUpdated")
+	CaptureScreen (Name: "Scenario07-UpdateBatchTenantSuccessfully")
+	
+	Log "Scenario08: Navigate to New Override and verify that appropriate message is displayed."
+	Click (ImageName:"Bandu/Header/Tab_Overrides", waitfor: 5)
+	Click "Bandu/Overrides/Button_NewOverride"
+	Click (ImageName:"Bandu/Overrides_New-Edit/Label_Tenant_HotSpot", waitfor:5)
+	Assert that imagefound("Bandu/Utilities/PleaseEnter2OrMoreCharacters")
+	CaptureScreen (Name: "Scenario08-OverridesEnter2orMore")
+	
+	Log "Scenario09: Verify that the new tenant displays in the override section"
+	TypeText systemAcccountData.Key
+	assert that ImageFound(defaultWaitTime, text:systemAcccountData.Name, SearchRectangle:ORNScreen.scale(.2, .3, .5, .5))
+	CaptureScreen (Name: "Scenario09-OverridesTenantDisplayed")
+	
+	Log "Scenario10: Navigate to Override Table and verify that appropriate message is displayed."
+	Click "Bandu/Overrides_New-Edit/Button_Cancel"
+	Click "Bandu/Utilities/TableControls/FilterOptions/Label_Filter_Tenant_HotSpot"
+	Assert that imagefound("Bandu/Utilities/PleaseEnter2OrMoreCharacters")
+	CaptureScreen (Name: "Scenario10-OverridesTableEnter2orMore")
+	
+	Log "Scenario11: Verify that the new tenant displays in the override table section"
+	TypeText systemAcccountData.Key
+	Set partialSystemAccountName to the first 10 characters of systemAcccountData.Name
+	assert that ImageFound(defaultWaitTime, text:partialSystemAccountName,SearchRectangle:ORNScreen.scale(.8, .5, 1, .6))
+	CaptureScreen (Name: "Scenario11-OverridesTableTenantDisplayed")
+	
+	Log "Scenario12: Navigate to New Capability Definitions and verify that appropriate message is displayed."
+	Click "Bandu/Header/Tab_Definitions/Tab_Definitions"
+	Click "Bandu/Header/Tab_Definitions/Definitions_Options/CapabilityDefinitions"
+	Click "Bandu/Definitions_NewCapability/Button_NewCapabilityDefinition"
+	Click "Bandu/Definitions_NewCapability_New-Edit/Label_Tenant_HotSpot"
+	Assert that imagefound("Bandu/Utilities/PleaseEnter2OrMoreCharacters")
+	CaptureScreen (Name: "Scenario12-CapabilityDefinitionsEnter2orMore")
+	
+	Log "Scenario13: Verify that the new tenant displays in the Capability Definitions section"
+	TypeText systemAcccountData.Key
+	assert that ImageFound(defaultWaitTime, text:systemAcccountData.Name,SearchRectangle:ORNScreen.scale(.2, .55, .5, .65))
+	CaptureScreen (Name: "Scenario13-CapabilityDefinitionsTenantDisplayed")
+	Click "Bandu/Definitions_NewCapability_New-Edit/Button_Cancel"
+	
+	//After Test Clean Up
+	BanduUtil.tenantCleanup cleanUpTenants
+	
+	//Closing Test
+	ORNEnvironment.cleanup environment
+catch exception
+	ORNEnvironment.handleException environment, exception
+end try

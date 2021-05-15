@@ -1,0 +1,97 @@
+{  
+	"suts":[  
+	   {  
+		  "name":"Windows-VM"
+	   }
+	],
+	"dev":{  
+	   "domain":"deveng",
+	   "users":[  
+		  {  
+			"username":"",
+			"password":""
+		  },
+		  {  
+			"username":"",
+			"password":""
+		  }
+		],
+		"assertions":{  
+			"fieldsValue":[  
+			  "Key Name",
+			  "Display Name",
+			  "Enter Feature Description",
+			  "Feature Owners",
+			  "Team Name",
+			  "Enter Technical Description",
+			  "Toggle type",
+			  "Save",
+			  "Cancel"
+		   ],
+			"featureIndex":"Feature Administration",
+			"featureCreation": "Feature created successfully",
+			"featureDomainAssociation": "Domain Associated Successfully",
+			"featureTenant": "Tenant",
+			"featureBatchTenant": "Multiple Tenants",
+			"featureBatchSuccess": "All changes saved successfully",
+			"featureTenantDel": "This action will permanently remove this tenant",
+			"featureTenantRem": "Tenant was removed successfully",
+			"featureUpdate": "Feature updated successfully",
+			"featureDomainDel": "This action will permanently remove this domain",
+			"featureDomainRem": "Domain was removed successfully",
+			"featureDelPopup": "Are you sure you want to delete this?",
+			"featureDelete": "Feature delete",
+			"batchTenant": "pi2Au6O6r-41IDt-griqAFji_BB2UQv6",
+			"parent_domain": "Domain Parent Test",
+			"domain_feature_test": "Domain Feature Test",
+            		"sorted_domain1": "aaaaaaaaaa",
+            		"sorted_domain2": "aaaaaaaaab",
+            		"sorted_domain3": "aaaaaaaaac",
+			"feature_name": "Feature-Test",
+			"tenant_feature": "FeatureTest",
+			"tenant_feature_child": "FeatureTestChild",
+			"feature_B": "Feature B",
+			"reference_page": "Reference Page",
+			"reference_notes": "Release Notes",
+			"feature_url": "http://temp.com",
+			"feature_owner_deletion": "Cannot delete User associated with a feature"
+		 },
+	   "endpoint":"https://bandu-test.devcernerpowerchart.com"
+	},
+	"staging":{  
+		"domain":"stgeng",
+		"users":[  
+		   {  
+			  "username":"",
+			  "password":""
+		   }
+		],
+		"assertions":{  
+			"fieldsValue":[  
+			  "Key Name",
+			  "Display Name",
+			  "Enter Feature Description",
+			  "Feature Owners",
+			  "Team Name",
+			  "Enter Technical Description",
+			  "Toggle type",
+			  "Save",
+			  "Cancel"
+		   ],
+			"featureIndex":"Feature Administration",
+			"featureCreation": "Feature created successfully",
+			"featureDomainAssociation": "Domain Associated Successfully",
+			"featureTenant": "Tenant",
+			"featureBatchTenant": "Multiple Tenants",
+			"featureBatchSuccess": "All changes saved successfully",
+			"featureTenantDel": "This action will permanently remove this tenant",
+			"featureTenantRem": "Tenant was removed successfully",
+			"featureUpdate": "Feature updated successfully",
+			"featureDomainDel": "This action will permanently remove this domain",
+			"featureDomainRem": "Domain was removed successfully",
+			"featureDelPopup": "This will permanently delete this feature",
+			"featureDelete": "Feature delete"
+		 },
+		"endpoint":"https://bandu.sandboxcernerpowerchart.com/"
+	 }
+ }

@@ -1,0 +1,88 @@
+﻿(** 
+	Test Case: PCT-VR-Bandu-DomainMigration
+        RQM Test Case ID: 101162
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("PCT-VR-Bandu-DomainMigration.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+set maxWaitTime to global maxWaitTime
+
+try	
+	set tabsAreaSR to ORNScreen.scale(0, .05, 1, .2)
+	set searchArea to ORNScreen.scale(0, .18, 1, 1)
+	set banduURL to environment.banduURL
+	set gitHubURL to environment.gitHubURL
+	set testData to environment.assertions
+	set user to item 1 of environment.users
+	
+	// Open the harness url and sign in
+	DskUtilities.dismissRulesOfRoad
+	DskBrowser.launchChromeIncognitoMaxURL gitHubURL
+	waitFor maxWaitTime, text: "domain_key"
+	BanduUtil.getYmlFile "domain_migration.yml"
+	DskBrowser.selectAddressandEnterURL banduURL
+	BanduUtil.banduLogin user.username, user.password
+	WaitFor maxWaitTime, text :"Logout",SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	Click text:"New Domain", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	DomainsUtil.createDomain testData.domainValue, testData.domainValue, testData.domainValue
+	DomainsUtil.addDomainConfigItemDefinition testData.domainConfItemDefValue, testData.domainConfItemDefValue, testData.domainValue 
+	DomainsUtil.addDomainConfigItem testData.domainValue, testData.domainConfItemDefValue, testData.domainConfItemValue
+	
+	log "Scenario 01: Navigate to Domain Migration Page and validate page is displayed"
+	Click text:"Domain Migration",SearchRectangle:tabsAreaSR
+	assert that ImageFound(maxWaitTime,text:"Domain Migration",SearchRectangle:ORNScreen.scale(.01,.10,1,1))
+	CaptureScreen "Scenario01_Domain_Migration_Screen"
+	
+	log "Scenario 02: Upload file and verify the selected file is displayed"
+	Click text:"Choose File",SearchRectangle:ORNScreen.scale(.01,.10,1,1)
+	Click text:"domain_migration.yml",SearchRectangle:ORNScreen.scale(.01,.10,1,1)
+	Click text:"Open",SearchRectangle:ORNScreen.scale(.01,.10,1,1)
+	assert that ImageFound(maxWaitTime,text:"domain_migration.yml",SearchRectangle:ORNScreen.scale(.01,.10,1,1))
+	CaptureScreen "Scenario02_Uploding_File_Successfully"
+	
+	log "Scenario 03: Click on submit button verify the migration success"
+	Click "Bandu/Domain_Migration_Submit"
+	assert that ImageFound(maxWaitTime,text:"Migration Success",SearchRectangle:ORNScreen.scale(0,0,1,1))
+	CaptureScreen "Scenario03_Migration_Success"
+	
+	log "Scenario 04: verify the migration failure"
+	assert that ImageFound(maxWaitTime,text:"Migration Failed",SearchRectangle:ORNScreen.scale(0,0,1,1))
+	CaptureScreen "Scenario04_Migration_Failure"
+	
+	log "Scenario 05: Click on cancel button navigate to domain migration screen"
+	Click text:"Cancel",SearchRectangle:ORNScreen.scale(.01,.10,1,1)
+	assert that ImageFound(maxWaitTime,text:"Domain Migration",SearchRectangle:ORNScreen.scale(0,0,1,1))
+	CaptureScreen "Scenario05_Navigated_To_Domain_Migration_Screen"
+	
+	log "Scenario 06: Navigate to domain tab and verify migration is successful"
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	click imagelocation(text:"Key",SearchRectangle:ORNScreen.scale(.83,.20,1,1))+(100,0)
+	TypeText testData.domainValue
+	Click "Bandu/Domain_Migration_Filter"
+	click text:"View",SearchRectangle:ORNScreen.scale(.75,.20,1,1)
+	assert that ImageFound(maxWaitTime,text:testData.domainValue,SearchRectangle:ORNScreen.scale(0,0,1,1))
+	assert that ImageFound(maxWaitTime,text:testData.domainConfItemDefValue,SearchRectangle:ORNScreen.scale(0,0,1,1)) 
+	CaptureScreen "Scenario06_Navigated_To_Domain_Tab_Verify_Migration_Success"
+	
+	log "re-setting Pre-requisite"
+	DomainsUtil.deleteDomainConfigItem  testData.domainValue
+	DomainsUtil.deleteDomainConfigItemDefinition testData.domainConfItemDefValue
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	click imagelocation(text:"Key",SearchRectangle:ORNScreen.scale(.83,.20,1,1))+(100,0)
+	TypeText testData.domainValue
+	Click "Bandu/Domain_Migration_Filter"
+	DomainsUtil.deleteDomain testData.domainValue
+	Click "Bandu/Button_OK"
+	Click text:"Logout", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)	
+	ORNEnvironment.cleanup environment	
+Catch exception	
+	ORNEnvironment.handleException environment, exception
+end try

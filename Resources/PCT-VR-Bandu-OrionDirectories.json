@@ -1,0 +1,63 @@
+{
+    "suts": [{
+        "name": "Windows-VM"
+    }],
+    "dev": {
+        "domain": "deveng",
+        "assertions": {
+            "directoryTypeKey": "DIR_TYPE_AUT",
+            "directoryTypeKey1": "DIR_TYPE_AUT1",
+            "directoryKey": "DIR_AUT",
+            "directoryDescription": "directory_automation",
+            "directoryValue": "{\"key\": \"DIR_AUT\", \"url\": \"https://www.example.com/\"}",
+            "directoryValueForSorting": "{\"key\": \"AAA_EggplantAUT_DT\", \"url\": \"https://www.example.com/\"}",
+            "directoryMissingKey": "{\"ke\": \"AAA_EggplantAUT_DT\", \"url\": \"https://www.example.com/\"}",
+            "directoryDuplicateKey": "{\"key\": \"AAA_EggplantAUT_DT\", \"url\": \"https://www.example.com/\"}",
+            "directoryCreatedMsg": "Directory was successfully created.",
+            "directoryUpdatedMsg": "Directory was successfully updated.",
+            "directoryDestroyedMsg": "Directory was successfully destroyed.",
+            "directoryValueBlankMsg": "Value can't be blank",
+            "directoryTypeKeyBlankMsg": "Key can't be blank",
+            "directoryTypeDuplicateKeyMsg": "Key has already been taken",
+            "dmrUser": "AAA_EggplantAUT_USER",
+            "directoryTypeKeyForSorting": "AAA_EggplantAUT_DT",
+            "directoryTypeDescForSorting": "EggPlant_AUT"
+        },
+        "users": [{
+            "username": "",
+            "password": "",
+            "username1": "",
+            "password1": ""
+        }],
+        "endpoint": "https://bandu-test.devcernerpowerchart.com/"
+    },
+    "staging": {
+        "domain": "stgeng",
+        "assertions": {
+            "directoryTypeKey": "DIR_TYPE_AUT",
+            "directoryTypeKey1": "DIR_TYPE_AUT1",
+            "directoryKey": "DIR_AUT",
+            "directoryDescription": "directory_automation",
+            "directoryValue": "{\"key\": \"DIR_AUT\", \"url\": \"https://www.example.com/\"}",
+            "directoryValueForSorting": "{\"key\": \"AAA_EggplantAUT_DT\", \"url\": \"https://www.example.com/\"}",
+            "directoryMissingKey": "{\"ke\": \"AAA_EggplantAUT_DT\", \"url\": \"https://www.example.com/\"}",
+            "directoryDuplicateKey": "{\"key\": \"AAA_EggplantAUT_DT\", \"url\": \"https://www.example.com/\"}",
+            "directoryCreatedMsg": "Directory was successfully created.",
+            "directoryUpdatedMsg": "Directory was successfully updated.",
+            "directoryDestroyedMsg": "Directory was successfully destroyed.",
+            "directoryValueBlankMsg": "Value can't be blank",
+            "directoryTypeKeyBlankMsg": "Key can't be blank",
+            "directoryTypeDuplicateKeyMsg": "Key has already been taken",
+            "dmrUser": "AAA_EggplantAUT_USER",
+            "directoryTypeKeyForSorting": "AAA_EggplantAUT_DT",
+            "directoryTypeDescForSorting": "EggPlant_AUT"
+        },
+        "users": [{
+            "username": "",
+            "password": "",
+            "username1": "",
+            "password1": ""
+        }],
+        "endpoint": "https://bandu.sandboxcernerpowerchart.net/"
+    }
+}

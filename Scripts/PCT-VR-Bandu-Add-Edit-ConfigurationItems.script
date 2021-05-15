@@ -1,0 +1,299 @@
+﻿(** 
+	Test Case: PCT-VR-Bandu-Add-Edit-ConfigurationItems
+      RQM Test Case ID: 48 
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("Bandu/PCT-VR-Bandu-Add-Edit-ConfigurationItems.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+set maxWaitTime to global maxWaitTime
+
+try	
+	// Setting variables
+	set banduURL to environment.endpoint
+	set user to item 1 of environment.users	
+	set domConfigItems to environment.assertions.domainConfigItems
+	set configItemBoolean to environment.assertions.configItemBoolean
+	set configItemOne to item 1 of environment.assertions.domainConfigItems
+	set configItemTwo to item 2 of environment.assertions.domainConfigItems
+	set configItemThree to item 3 of environment.assertions.domainConfigItems
+	set searchConfigItem to item 2 of environment.assertions.domainConfigItems
+	delete the last 4 characters of searchConfigItem
+	set capDefinitions to environment.assertions.capDefinitions	
+	set capDefOne to item 1 of environment.assertions.capDefinitions
+	set capDefTwo to item 2 of environment.assertions.capDefinitions
+	set capDefThree to item 3 of environment.assertions.capDefinitions
+	set searchCapDef to item 1 of environment.assertions.capDefinitions
+	delete the last 4 characters of searchCapDef	
+	set testData to environment.assertions
+	set filterSRArea to ORNScreen.scale(.7, 0, 1, 1)
+	set definitionDropDownArea to ORNScreen.scale(0,.3,.5,0.7)
+	put configItemOne && "-" && testData.domainValue into assertConfigOne
+	put configItemTwo && "-" && testData.domainValue into assertConfigTwo
+	put configItemThree && "-" && testData.domainValue into assertConfigThree
+	
+	// Open the harness url and sign in
+	DskUtilities.dismissRulesOfRoad
+	DskBrowser.launchChromeIncognitoMaxURL banduURL
+	BanduUtil.banduLogin user.username, user.password
+	WaitFor ORNInterval.medium, text :"Logout",SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	Click text:"New Domain", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	DomainsUtil.createDomain testData.domainValue, testData.domainValue, testData.domainValue
+	
+	(*Scenario 1 – Create new capability definition with Boolean type filed as option.
+	User navigates to navigates to Bandu application and create a capability definition and validate successful capability definition creation. *)
+	CapabilityDefinitions.addNewCapabilityDefinition capDefOne, "Boolean"	
+	log "Scenario 1 – Verify new capability definition successfully created with type boolean"
+	assert that ImageFound(waitfor:ORNInterval.medium, text: testData.capDefCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario01_Capability_definition_created_boolean"
+	
+	(*Scenario 2 – Edit and modify the capability definition 	
+	User edits the capability definition by updating fields and validate successful update. *)
+	Click text:"Edit Capability Definition", SearchRectangle:ORNScreen.scale(.75, .05, 1, .2), WaitFor:ORNInterval.medium
+	CapabilityDefinitions.editCapabilityDefinition "Integer"
+	log "Scenario 2 – Verify capability definition updated"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.capDefUpdatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario02_ Capability_definition_updated"
+	
+	(*Scenario 3 – Delete capability definition.
+	User delete the capability definition and validate successful destroy of capability definition.*)
+	CapabilityDefinitions.deleteCapabilityDefinition
+	log "Scenario 3 – Verify capability definition destroyed"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.capDefDestroyedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario03_ Capability_definition_destroyed"
+	
+	(*Scenario 4 – Create new capability definition with json type field as option.
+	User create a capability definition and validate successful capability definition creation. *)
+	CapabilityDefinitions.addNewCapabilityDefinition capDefOne, "Json"
+	log "Scenario 4 – Verify new capability definition successfully created with type json"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.capDefCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario04_Capability_definition_created_json"
+	
+	(*Scenario 5 – Create new capability definition with String type field as option.
+	User create a capability definition and validate successful capability definition creation. *)
+	CapabilityDefinitions.addNewCapabilityDefinition capDefTwo, "String"
+	log "Scenario 5 –Verify new capability definition successfully created with type string"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.capDefCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario05_Capability_definition_created_string"
+	
+	(*Scenario 6 – Create new capability definition with Boolean type filed as option and change the value type to Integer.
+	User Create new capability definition with Boolean type filed as option and change the value type to Integer. Validates that value field displays in the textbox.*)
+	CapabilityDefinitions.addNewCapabilityDefinition capDefThree, "Integer"
+	log "Scenario 6 – Verify new capability definition successfully created with type integer"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.capDefCreatedMsg, validCharacters:"*",SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario06_Capability_definition_created_integer"
+	
+	(*Scenario 7 – Added capabilities displays in configuration items.
+	Navigate to configuration items and validate that added capabilities are displayed in table.*)
+	Click Image:"Bandu/Button_Definitions_Menu", SearchRectangle:ORNScreen.scale(.15, .05, .8, .2), WaitFor:ORNInterval.medium
+	Click text:"Capability Definitions", validCharacters:"*", ignorecase:N, DPI:200, SearchRectangle:ORNScreen.scale(.15, .05, .5, .2), WaitFor:ORNInterval.medium
+	BanduUtil.applyFilter KEY, Contains, searchCapDef
+	log "Scenario 7 – Verify added capabilities displays in configuration items"
+	repeat with each item of capDefinitions 
+		assert that ImageFound(waitfor:ORNInterval.medium, text:it, validCharacters:"*", DPI:200, SearchRectangle:ORNScreen.scale(0, .1, .75, .5))		
+	end repeat		
+	CaptureScreen "Scenario07_Added_capabilities_displayed" 
+	
+	(*Scenario 8 - Click new domain configurations item definition and enter just 2 letters in Domain field and verify Domain is filtered.*)
+	DomainConfigItemDefinitions.navigateToDomainConfigItemDefinitions
+	Click text:"New Domain Configuration Item Definition", validCharacters:"*", SearchRectangle:ORNScreen.scale(.75, .05, 1, .2), WaitFor:ORNInterval.short
+	click Image: "Bandu/Text_Domain"
+	typetext "au"
+	wait 4 //This wait period is required to so that text domain loads properly.
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domainValue, validCharacters:"*", SearchRectangle: ORNScreen.scale(0,.3,.5,1)) 
+	CaptureScreen "Scenario8_ domain_configuration_item_check_definition_filter"
+	
+	(*Scenario 9– Create new domain configurations item definition with type filed Boolean 
+	User navigates to new domain configuration definitions and create new domain configuration with type filed Boolean and validate the same.*)
+	DomainConfigItemDefinitions.addNewDomainConfigItemDefinition configItemBoolean, "Boolean"
+	log "Scenario 9 – Verify new domain configurations item definition created - boolean"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .3)) 
+	CaptureScreen "Scenario09_New_domain_configurations_item_boolean"
+	
+	(*Scenario 10 – Edit and modify configuration item definition.
+	User edits the capability definition by updating fields and validate successful update. *)
+	DomainConfigItemDefinitions.editDomainConfigItemDefinition "Integer"
+	log "Scenario 9 – Update domain configuration item definition"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemUpdatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .3)) 
+	CaptureScreen "Scenario09_Update_domain_configuration_item_definition"
+	
+	(*Scenario 11 – Delete configuration item definition.
+	User delete the configuration item and validate successful destroy of configuration item definition. *) 
+	DomainConfigItemDefinitions.deleteDomainConfigItemDefinition
+	log "Scenario 11– Destroy domain configuration item definition"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemDestroyedMsg, SearchRectangle: ORNScreen.scale(0, .1, .75, .3)) 
+	CaptureScreen "Scenario11_Destroy_domain_configuration_item_definition"
+	
+	// Creating configuration item with boolean type again for furthur scenarios usage. 
+	DomainConfigItemDefinitions.addNewDomainConfigItemDefinition configItemBoolean, "Boolean"
+	
+	(*Scenario 12 – Create new domain configurations item definition with type filed Integer. 
+	Create new domain configurations item definition with type filed Integer and validate that domain configuration item was successfully created.*) 
+	DomainConfigItemDefinitions.addNewDomainConfigItemDefinition  configItemOne,"Integer"
+	log "Scenario 12 – Verify new domain configurations item definition created - integer"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .8)) 
+	CaptureScreen "Scenario12_New_domain_configurations_item_integer"
+	
+	(*Scenario 13 – Create new domain configurations item definition with type filed json.
+	Create new domain configurations item definition with type filed Integer and validate that domain configuration item was successfully created. *)
+	DomainConfigItemDefinitions.addNewDomainConfigItemDefinition  configItemTwo, "Json"
+	log "Scenario 123– Verify new domain configurations item definition created - json"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .8)) 
+	CaptureScreen "Scenario13_New_domain_configurations_item_json"
+	
+	(*Scenario 14 – Create new domain configurations item definition with type filed String. 
+	Create new domain configurations item definition with type filed Integer and validate that domain configuration item was successfully created.*) 
+	DomainConfigItemDefinitions.addNewDomainConfigItemDefinition  configItemThree,"String"
+	log "Scenario 14 – Verify new domain configurations item definition created - string"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .1, .75, .8)) 
+	CaptureScreen "Scenario14_New_domain_configurations_item_string"
+	
+	(*Scenario 15 – Added configuration items displayed in domain configuration item definitions. 
+	User navigates to domain configuration item definitions and validate that Added configuration items displayed in table. *)
+	Click Image:"Bandu/Button_Definitions_Menu", SearchRectangle:ORNScreen.scale(.15, .05, .8, .2), WaitFor:ORNInterval.short
+	Click text:"Domain Configuration Item", SearchRectangle:ORNScreen.scale(.15, .05, .5, .2), WaitFor:ORNInterval.short
+	BanduUtil.applyFilter KEY, Contains, searchConfigItem
+	log "Scenario 15 – Verify added domain configuration item definitions"
+	repeat with each item of domConfigItems
+		assert that ImageFound(waitfor:ORNInterval.medium, text:it,validCharacters:"*",SearchRectangle: ORNScreen.scale(.01, .1, .3, .5 ))	
+	end repeat		
+	CaptureScreen "Scenario15_Added domain configuration item definitions" 
+	
+	
+	(*Scenario 16 –  Try to sort the values form the table verify contents in the table are sorting. *)
+	Click Image:"Bandu/Button_Definitions_Menu", SearchRectangle:ORNScreen.scale(.15, .05, .8, .2), WaitFor:ORNInterval.short
+	Click text:"Domain Configuration Item", SearchRectangle:ORNScreen.scale(.15, .05, .5, .2), WaitFor:ORNInterval.short
+	assert that  ImageFound(Text:"ConfigJson", DPI:"200", CaseSensitive:"Yes",SearchRectangle: ORNScreen.scale(.0, .18,1, .3))
+	Click text:"Id",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	wait 4
+	assert that not ImageFound(text:"ConfigJson",DPI:"200",SearchRectangle: ORNScreen.scale(.0, .18,1, .3)) 
+	CaptureScreen "Scenario16_Table_sorted" 
+	
+	// sorting back to the original state
+	Click text:"Id",  DPI:"200", CaseSensitive:"Yes", SearchRectangle:ORNScreen.scale(.0, .18,1, .3), WaitFor:ORNInterval.short
+	
+	(*Scenario 17 – Change value in the definition dropdown – Boolean to Integer.
+	User navigates to new domain configuration item definition, select definition with Boolean, changes the value to Integer and validates that changed values field displayed with textbox*)
+	BanduUtil.applyFilter KEY, Contains, configItemBoolean
+	BanduUtil.viewEditDeleteSummaryOptions  configItemBoolean,"Edit"
+	DomainConfigItemDefinitions.editDomainConfigItemDefinition "Integer"
+	log "Scenario 17 – Verify capability definition updated - Boolen to Integer"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemUpdatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario17_ Capability_definition_updated"
+	
+	(*Scenario 18 – Change value in the definition dropdown – Integer to String.User navigates to new domain configuration item definition, select definition with Integer, changes the value to string and validates that changed values field displayed with textbox.*)			
+	DomainConfigItemDefinitions.editDomainConfigItemDefinition "String"
+	log "Scenario 18 – Verify capability definition updated - Integer to String"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigItemUpdatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario18_ Capability_definition_updated"	
+	
+	(*Scenario 19 – Click new domain configurations item and enter just 2 letters in Definition field and verify Definitions are filtered along with domain names.*)
+	Click text:"Configuration Items"
+	Click text:"Domain Configuration Items",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	Click text:"New Domain Configuration Item", SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	click ImageLocation(text:"Definition",SearchRectangle:ORNScreen.scale(0,.3,.5,1))+(400,0)
+	TypeText "co"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:configItemBoolean, validCharacters:"*", SearchRectangle: definitionDropDownArea) 
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigOne, validCharacters:"*", SearchRectangle: definitionDropDownArea)
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigTwo, validCharacters:"*", SearchRectangle: definitionDropDownArea)
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigThree, validCharacters:"*", SearchRectangle: definitionDropDownArea)
+	CaptureScreen "Scenario19_ domain_configuration_item_check_definition_filter"
+	
+	(*Scenario 20 – Create new domain configurations item with type filed Integer.*)
+	DomainsUtil.addDomainConfigItem testData.domainValue, configItemOne, 123
+	log "Scenario 20 – Verify new domain configuration item with type filed Integer Created"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigurationItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario20_ domain_configuration_item_created_integer"
+	DomainsUtil.deleteDomainConfigItem "automation master"
+	
+	(*Scenario 21 – Create new domain configurations item with type filed JSON.*)
+	DomainsUtil.addDomainConfigItem testData.domainValue, configItemTwo, "Json"
+	log "Scenario 21 – Verify new domain configuration item with type filed JSON Created"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigurationItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario21_ domain_configuration_item_created_JSON"
+	DomainsUtil.deleteDomainConfigItem "automation master"
+	
+	(*Scenario 22 – Create new domain configurations item with type filed String.*)
+	DomainsUtil.addDomainConfigItem testData.domainValue, configItemThree, "String"
+	log "Scenario 22 – Verify new domain configuration item with type filed String Created"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigurationItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario22_ domain_configuration_item_created_String"
+	DomainsUtil.deleteDomainConfigItem "automation master"
+	
+	(*Scenario 23 – Create new domain configurations item with type filed Boolean.*)
+	DomainsUtil.addDomainConfigItem testData.domainValue, configItemBoolean, "Json"
+	log "Scenario 23 – Verify new domain configuration item with type filed Boolen Created"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigurationItemCreatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario23_ domain_configuration_item_created_JSON"
+	
+	(*Scenario 24 – Navigate to the edit screen of the configurations item and validate domain is displayed in the definition field*)
+	click text:"Edit Domain Configuration Item",SearchRectangle:ORNScreen.scale(.5,0,1,.4)
+	waitfor ORNInterval.medium, text:"Edit Domain Configuration Item"
+	click ImageLocation(text:"Definition*", textDifference: 1, SearchRectangle:ORNScreen.scale(0,.3,.5,1))+(400,0)
+	TypeText testData.domainValue
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigOne, validCharacters:"*", SearchRectangle: definitionDropDownArea)
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigTwo, validCharacters:"*", SearchRectangle: definitionDropDownArea)
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigThree, validCharacters:"*", SearchRectangle: definitionDropDownArea)
+	CaptureScreen "Scenario24_ DropDown_displays_the_domain_and_definition_on_edit_page"
+	
+	(*Scenario 25 – Edit and modify domain configuration item*)
+	DomainsUtil.editDomainConfigItem testData.domainValue, configItemThree, "edited"
+	log "Scenario 25 – Verify domain configuration item is edited"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigurationItemUpdatedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario25_ domain_configuration_item_edited"
+	
+	(*Scenario 26: Filter the Domain Configuration Items by Definitions and Validate Domain is displayed in the Filter.*)
+	Click text:"Configuration Items"
+	Click text:"Domain Configuration Items",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	click ImageLocation(text:Definition,SearchRectangle:filterSRArea) +(5,25)
+	KeyDown ControlKey, "a"
+	KeyUp ControlKey
+	TypeText testData.domainValue
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigOne, validCharacters:"*", SearchRectangle: filterSRArea)
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigTwo, validCharacters:"*", SearchRectangle: filterSRArea)
+	assert that ImageFound(waitfor:ORNInterval.medium, text:assertConfigThree, validCharacters:"*", SearchRectangle: filterSRArea)
+	CaptureScreen "Scenario26_ Filter_displays_the_domain_and_definition"
+	
+	(*Scenario 27 – Delete domain configuration item*)
+	DomainsUtil.deleteDomainConfigItem "automation master"
+	log "Scenario 27 – Verify domain configuration item is deleted"
+	assert that ImageFound(waitfor:ORNInterval.medium, text:testData.domConfigurationItemDestroyedMsg, validCharacters:"*", SearchRectangle: ORNScreen.scale(0, .14, .7, .22)) 
+	CaptureScreen "Scenario27_ domain_configuration_item_deleted"
+	
+	
+	// Clean up - Deleting all created capability definitions and configuration items for next run to avoid duplication problem
+	CapabilityDefinitions.destroyCapDefinition capDefOne
+	CapabilityDefinitions.destroyCapDefinition capDefTwo
+	CapabilityDefinitions.destroyCapDefinition capDefThree
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemOne
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemTwo
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemThree
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemBoolean
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	DomainsUtil.deleteDomain testData.domainValue
+	Click "Button_OK"
+	ORNEnvironment.cleanup environment
+Catch exception			
+	
+	// Clean up - In case exception raises. Deleting all created capability definitions and configuration items for next run to avoid duplication problem
+	CapabilityDefinitions.destroyCapDefinition capDefOne
+	CapabilityDefinitions.destroyCapDefinition capDefTwo	
+	CapabilityDefinitions.destroyCapDefinition capDefThree
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemOne
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemTwo
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemThree
+	DomainConfigItemDefinitions.destroyDomainConfigItem configItemBoolean
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	DomainsUtil.deleteDomain testData.domainValue
+	Click "Button_OK"
+	ORNEnvironment.handleException environment, exception	
+end try
+

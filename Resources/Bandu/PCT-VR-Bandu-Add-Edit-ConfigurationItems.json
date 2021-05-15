@@ -1,0 +1,71 @@
+{
+    "suts": [{
+        "name": "Windows-VM"
+    }],
+    "dev": {
+        "domain": "deveng",
+        "assertions": {
+            "domainValue": "Automation Master",
+            "configItemBoolean": "ConfigBoolean",
+            "capDefCannotDelete": "Robo",
+            "domainConfigItems": [
+                "ConfigNum",
+                "ConfigJson",
+                "ConfigBring"
+            ],
+            "capDefinitions": [
+                "CapabilityJson",
+                "CapabilityBring",
+                "CapabilityNum"
+            ],
+            "capDefCreatedMsg": "Capability definition was successfully created",
+            "capDefUpdatedMsg": "Capability definition was successfully updated",
+            "capDefDestroyedMsg": "Capability Definition successfully destroyed",
+            "capDefCannotDestroyMsg": "Cannot destroy Capability Definition",
+            "domConfigItemCreatedMsg": "Domain Configuration item definition was successfully created",
+            "domConfigItemUpdatedMsg": "Domain Configuration item definition was successfully updated",
+            "domConfigItemDestroyedMsg": "Domain Configuration item successfully destroyed",
+            "domConfigurationItemCreatedMsg": "Domain configuration item was successfully created.",
+            "domConfigurationItemUpdatedMsg": "Domain configuration item was successfully updated.",
+            "domConfigurationItemDestroyedMsg": "Domain configuration item was successfully destroyed."
+        },
+        "users": [{
+            "username": "",
+            "password": ""
+        }],
+        "endpoint": "https://bandu-test.devcernerpowerchart.com/"
+    },
+    "staging": {
+        "domain": "stgeng",
+        "assertions": {
+            "domainValue": "Automation Master",
+            "configItemBoolean": "ConfigItemBoolean",
+            "capDefCannotDelete": "Robo",
+            "domainConfigItems": [
+                "ConfigItemEinteger",
+                "ConfigItemJson",
+                "ConfigItemString"
+            ],
+            "capDefinitions": [
+                "CapabilityJson",
+                "CapabilityString",
+                "CapabilityInteger"
+            ],
+            "capDefCreatedMsg": "Capability definition was successfully created",
+            "capDefUpdatedMsg": "Capability definition was successfully updated",
+            "capDefDestroyedMsg": "Capability Definition successfully destroyed",
+            "capDefCannotDestroyMsg": "Cannot destroy Capability Definition",
+            "domConfigItemCreatedMsg": "Domain Configuration item definition was successfully created",
+            "domConfigItemUpdatedMsg": "Domain Configuration item definition was successfully updated",
+            "domConfigItemDestroyedMsg": "Domain Configuration item successfully destroyed",
+            "domConfigurationItemCreatedMsg": "Domain configuration item was successfully created.",
+            "domConfigurationItemUpdatedMsg": "Domain configuration item was successfully updated.",
+            "domConfigurationItemDestroyedMsg": "Domain configuration item was successfully destroyed."
+        },
+        "users": [{
+            "username": "",
+            "password": ""
+        }],
+        "endpoint": "https://bandu.sandboxcernerpowerchart.net/"
+    }
+}

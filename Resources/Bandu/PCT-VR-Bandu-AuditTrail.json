@@ -1,0 +1,93 @@
+{
+	"suts": [{
+		"name": "Windows-VM"
+	}],
+	"dev": {
+		"domain": "deveng",
+		"assertions": {
+			"tableHeaders": [
+				"Id",
+				"Item Names",
+				"Item id",
+				"Event Type",
+				"Action by",
+				"Object",
+				"Updated Date"
+			],
+			"filterHeaders": [
+				"ITEM NAME",
+				"ITEM ID",
+				"EVENT TYPE",
+				"OBJECT",
+				"UPDATED DATE"
+			],
+            		"feature_name": "Feature-Test",
+            		"featureCreation": "Feature created successfully",
+            		"domainAuditTest": "Domain_Audit_Test",
+            		"domainCreatedMsg": "Domain was successfully created",
+            		"feature_url": "http://temp.com",
+            		"featureDomainAssociation": "Domain Associated Successfully",
+            		"reference_page": "Reference Page",
+            		"reference_notes": "Release Notes",
+            		"featureUpdation": "Feature updated successfully",
+                    	"featureDeletion": "Feature Deleted Successfully",
+			"testTenant": "Audit_Test_Tenant",
+			"filterName": "Name",
+			"filterKey": "Key",
+			"filterContains": "Contains",
+			"filterEquals": "Equals", 
+			"DomainFeature": "DomainFeature",
+			"TenantFeature": "TenantFeature",
+			"Domain": "Domain"
+		},
+		"users": [{
+			"username": "Blank",
+			"password": "Blank"
+		}],
+		"endpoint": "https://bandu-test-kube.devcernerpowerchart.com/"
+	},
+	"staging": {
+		"domain": "stgeng",
+		"assertions": {
+			"tableHeaders": [
+				"Id",
+				"Item Names",
+				"Item id",
+				"Event Type",
+				"Action by",
+				"Object",
+				"Updated Date"
+			],
+			"filterHeaders": [
+				"ITEM NAME",
+				"ITEM ID",
+				"EVENT TYPE",
+				"OBJECT",
+				"UPDATED DATE"
+			],
+            		"feature_name": "Feature-Test",
+            		"featureCreation": "Feature created successfully",
+           		"domainAuditTest": "Domain_Audit_Test",
+            		"domainCreatedMsg": "Domain was successfully created",
+            		"feature_url": "http://temp.com",
+            		"featureDomainAssociation": "Domain Associated Successfully",
+            		"reference_page": "Reference Page",
+            		"reference_notes": "Release Notes",
+            		"featureUpdation": "Feature updated successfully",
+                    	"featureDeletion": "Feature Deleted Successfully",
+			"testTenant": "Audit_Test_Tenant",
+			"filterName": "Name",
+			"filterKey": "Key",
+			"filterContains": "Contains",
+			"filterEquals": "Equals", 
+			"DomainFeature": "DomainFeature",
+			"TenantFeature": "TenantFeature",
+			"Domain": "Domain"
+		},
+		"users": [{
+			"username": "Blank",
+			"password": "Blank"
+		}],
+		"endpoint": "https://bandu.sandboxcernerpowerchart.net/"
+	}
+}

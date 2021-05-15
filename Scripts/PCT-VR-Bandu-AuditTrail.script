@@ -1,0 +1,142 @@
+﻿
+(** 
+	Test Case: PCT-VR-Bandu-AuditTrail
+        RQM Test Case ID: 13276
+**)
+
+// Optional Parameter, if defined will replace the defaults. Example for testArguments - "env:dev" would replace defaultEnvironment
+params testArguments
+
+set defaultEnvironment to "dev" //  Used if env is not passed in as a parameter
+set resourceFile to ResourcePath("Bandu/PCT-VR-Bandu-AuditTrail.json")
+set environment to ORNEnvironment.prepare(resourceFile, testArguments, defaultEnvironment)
+set testData to environment.assertions
+
+// Retrieve Orion global variables
+ORNGlobalSettings.apply
+set maxWaitTime to global maxWaitTime
+
+try	
+	
+	// Setting reusable search rectangles and variables
+	set tabsAreaSR to ORNScreen.scale(0, .05, 1, .2)
+	set searchArea to ORNScreen.scale(0, .18, 1, 1)	
+	set patientSearchURL to environment.endpoint
+	set user to item 1 of environment.users
+	set parentDomain to environment.assertions.parentDTxt
+	set parentDomainChild to environment.assertions.parentDChldTxt
+	set parentDomainSubChild to environment.assertions.parentDSubChldTxt
+	set tableItems to environment.assertions.tableHeaders
+	set filterItems to environment.assertions.filterHeaders
+	
+	// Open the harness url and sign into
+	DskUtilities.dismissRulesOfRoad
+	DskBrowser.launchChromeIncognitoMaxURL patientSearchURL
+	BanduUtil.banduLogin user.username, user.password
+	WaitFor maxWaitTime, text :"Logout",SearchRectangle:ORNScreen.scale(.7, 0, 1, .3)
+	
+	//Scenario 1: User Navigates to Bandu Application's Audit Menu to verify Audit Table, Audit Filter, and CRUD operation performed in the Bandu application with the view link Audit Details displays.
+	Log "User Navigates to Bandu Application's Audit Menu to verify Audit Table, Audit Filter, and CRUD operation performed in the Bandu application with the view link Audit Details displays"
+	Click text:"Audits",ignorecase:N, DPI:200, SearchRectangle:ORNScreen.scale(.15, .05, .5, .2), WaitFor:10
+	repeat with each item of tableItems 	
+		assert that ImageFound(waitfor:10,text:it, validCharacters:"*", DPI:150, SearchRectangle:ORNScreen.scale(.01, .1, .9, .3))
+	end repeat
+	
+	repeat with each item of filterItems	
+		assert that ImageFound(waitfor:10,text:it, validCharacters:"*", DPI:150, textDifference: 1, SearchRectangle:ORNScreen.scale(.75, .15, .95, .6))
+	end repeat
+	CaptureScreen "Scenario1_Bandu_Application_ Audit_Menu_Displayed"
+	
+	//Scenario 2: User clicks on view link on any item and verify audit details page displays.
+	Log "User clicks on view link on any item and verify audit details page displays."
+	Click text:"View",ignorecase:N, DPI:200, SearchRectangle:ORNScreen.scale(.75, .15, .95, .5), WaitFor:10
+	log "Verify audit details page displayed"
+	repeat with each item of filterItems	
+		Drop "Bandu-Shared/Text_ItemName"
+		assert that ImageFound(waitfor:10,text:it, validCharacters:"*", DPI:150, textDifference: 1, SearchRectangle:ORNScreen.scale(.005, .15, .35, .6))
+	end repeat
+	CaptureScreen "Scenario2_Audit_details_page_displayed"
+	
+	//Scenario 3: User search Audit with a Filter and verify search result displays correctly as filtered.
+	Log " User search Audit with a Filter and verify search result displays correctly as filtered."
+	Click text:"Audits",ignorecase:N, DPI:200, SearchRectangle:ORNScreen.scale(.15, .05, .5, .2), WaitFor:10
+	BanduUtil.applyFilter testData.filterName, testData.filterContains, testData.Domain
+	assert that ImageFound(waitfor:10,text:"Domain", validCharacters:"*", DPI:200, SearchRectangle:ORNScreen.scale(.05, .15, .95, .6))
+	CaptureScreen "Scenario3_Filtered_result_displayed"
+	
+	FeaturesUtil.createTenant testData.testTenant, testData.testTenant, testData.testTenant
+	//Scenario 04: Create and edit the Feature and Validate Domain Feature is displayed in the Audit
+	//create feature
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	Click text:"New Feature", SearchRectangle:ORNScreen.scale(.7,0,1,.3), WaitFor:ORNInterval.medium
+	WaitFor ORNInterval.medium, text:"Key Name", SearchRectangle:searchArea
+	FeaturesUtil.createFeature testData.feature_name, testData.feature_name, testData.feature_name, testData.feature_name
+	assert that ImageFound(ORNInterval.medium, text:testData.featureCreation, SearchRectangle:tabsAreaSR)
+	DomainsUtil.openNewDomainPage
+	WaitFor ORNInterval.medium, text:"Domain Details", SearchRectangle:ORNScreen.scale(0, .05, 1, .4)
+	DomainsUtil.createDomain testData.domainAuditTest, testData.domainAuditTest, testData.domainAuditTest
+	WaitFor ORNInterval.medium, text:testData.domainCreatedMsg, SearchRectangle:ORNScreen.scale(0, .17, 0.4, .3)
+	
+	//edit feature
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	BanduUtil.applyFilter testData.filterKey, testData.filterEquals, testData.feature_name
+	click text:testData.feature_name, SearchRectangle:ORNScreen.scale(0, .05, 1, .4)
+	WaitFor ORNInterval.medium, text: "Feature Details", SearchRectangle:ORNScreen.scale(0, .17, 0.4, .3)
+	TypeText pageDown
+	BanduUtil.enterFieldValue "Domains", testData.domainAuditTest
+	TypeText returnKey
+	click "Button_Add_Domain"
+	BanduUtil.enterFieldValue testData.reference_page, testData.feature_url
+	BanduUtil.enterFieldValue testData.reference_notes, testData.feature_url
+	click ImageLocation(text:"Enable Feature")+(210,0)
+	click "Button_Save"
+	assert that ImageFound(text:testData.featureDomainAssociation, SearchRectangle:searchArea)
+	TypeText pageDown
+	
+	//Validate Domain Feature is displayed in the Audit
+	WaitFor ORNInterval.medium, text: testData.domainAuditTest
+	click text:testData.domainAuditTest, SearchRectangle:ORNScreen.scale(0,.6,.3,1)
+	BanduUtil.enterFieldValue "Enabled Version", 2
+	TypeText pageDown
+	click "Button_Save"
+	assert that ImageFound(ORNInterval.medium, text:testData.featureUpdation, SearchRectangle:tabsAreaSR)
+	TypeText pageDown
+	click text:testData.domainAuditTest, SearchRectangle:ORNScreen.scale(0,.6,.3,1)
+	TypeText pageDown
+	BanduUtil.enterFieldValue "Tenant", testData.testTenant
+	TypeText returnKey
+	click "Button_Add_Tenant"
+	WaitFor ORNInterval.medium, text: "Select value", SearchRectangle:ORNScreen.scale(0.1,0.2,0.5,0.7)
+	click text: "Enable Feature", SearchRectangle:ORNScreen.scale(0.1,0.2,0.5,0.7)
+	TypeText returnKey
+	Click text:"Audits",ignorecase:N, DPI:200, SearchRectangle:ORNScreen.scale(.15, .05, .5, .2), WaitFor:10
+	BanduUtil.applyFilter testData.filterName, testData.filterContains, testData.DomainFeature
+	assert that ImageFound(waitfor:10,text:"DomainFeature", validCharacters:"*", DPI:200, SearchRectangle:ORNScreen.scale(.05, .15, .95, .6))
+	BanduUtil.applyFilter testData.filterName, testData.filterContains, testData.TenantFeature
+	assert that ImageFound(waitfor:10,text:"TenantFeature", validCharacters:"*", DPI:200, SearchRectangle:ORNScreen.scale(.05, .15, .95, .6))
+	CaptureScreen "Scenario4_DomainFeature_and_TenantFeature_displayed_in_the_Audit"	
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	BanduUtil.selectDeleteFeature testData.feature_name
+	Click "Button_OK"
+	WaitFor ORNInterval.medium, text: "Feature Deleted Successfully", SearchRectangle:ORNScreen.scale(0, .17, 0.4, .3)
+	FeaturesUtil.deleteTenant testData.testTenant
+	Click "Button_OK"
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	DomainsUtil.deleteDomain testData.domainAuditTest
+	Click "Button_OK"
+	
+	ORNEnvironment.cleanup environment
+Catch exception
+	Click text:"Features", SearchRectangle:tabsAreaSR
+	BanduUtil.selectDeleteFeature testData.feature_name
+	Click "Button_OK"
+	WaitFor ORNInterval.medium, text: "Feature Deleted Successfully", SearchRectangle:ORNScreen.scale(0, .17, 0.4, .3)
+	FeaturesUtil.deleteTenant testData.testTenant
+	Click "Button_OK"
+	Click text:"Domains",SearchRectangle:ORNScreen.scale(0, .05, 1, .2)
+	DomainsUtil.deleteDomain testData.domainAuditTest
+	Click "Button_OK"
+	ORNEnvironment.handleException environment, exception	
+end try
+
+
